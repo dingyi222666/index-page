@@ -2,6 +2,14 @@ import { useEffect, useRef } from "react";
 
 type NumberRange = number[];
 
+type SakuraColorRange = {
+  hue?: NumberRange;
+  saturation?: NumberRange;
+  lightness?: NumberRange;
+};
+
+type NormalizedSakuraColorRange = Required<SakuraColorRange>;
+
 export interface SakuraConfig {
   enabled?: boolean;
   count?: number;
@@ -20,14 +28,16 @@ export interface SakuraConfig {
   pressWindStrength?: number;
   pressChaos?: number;
   colors?: {
-    hue?: NumberRange;
-    saturation?: NumberRange;
-    lightness?: NumberRange;
+    light?: SakuraColorRange;
+    dark?: SakuraColorRange;
   };
 }
 
 type NormalizedSakuraConfig = Required<Omit<SakuraConfig, "colors">> & {
-  colors: Required<NonNullable<SakuraConfig["colors"]>>;
+  colors: {
+    light: NormalizedSakuraColorRange;
+    dark: NormalizedSakuraColorRange;
+  };
 };
 
 const DEFAULT_CONFIG: NormalizedSakuraConfig = {
@@ -48,9 +58,16 @@ const DEFAULT_CONFIG: NormalizedSakuraConfig = {
   pressWindStrength: 8,
   pressChaos: 2,
   colors: {
-    hue: [340, 355],
-    saturation: [70, 90],
-    lightness: [75, 90],
+    light: {
+      hue: [335, 350],
+      saturation: [78, 96],
+      lightness: [48, 66],
+    },
+    dark: {
+      hue: [340, 355],
+      saturation: [70, 90],
+      lightness: [75, 90],
+    },
   },
 };
 
@@ -77,6 +94,15 @@ const normalizeNumber = (value: number | undefined, fallback: number) => {
 
 const normalizeCount = (value: number | undefined) =>
   Math.max(0, Math.floor(normalizeNumber(value, DEFAULT_CONFIG.count)));
+
+const normalizeColors = (
+  colors: SakuraColorRange | undefined,
+  fallback: NormalizedSakuraColorRange,
+): NormalizedSakuraColorRange => ({
+  hue: normalizeRange(colors?.hue, fallback.hue),
+  saturation: normalizeRange(colors?.saturation, fallback.saturation),
+  lightness: normalizeRange(colors?.lightness, fallback.lightness),
+});
 
 const normalizeConfig = (config?: SakuraConfig): NormalizedSakuraConfig => ({
   ...DEFAULT_CONFIG,
@@ -112,17 +138,8 @@ const normalizeConfig = (config?: SakuraConfig): NormalizedSakuraConfig => ({
   ),
   pressChaos: normalizeNumber(config?.pressChaos, DEFAULT_CONFIG.pressChaos),
   colors: {
-    ...DEFAULT_CONFIG.colors,
-    ...config?.colors,
-    hue: normalizeRange(config?.colors?.hue, DEFAULT_CONFIG.colors.hue),
-    saturation: normalizeRange(
-      config?.colors?.saturation,
-      DEFAULT_CONFIG.colors.saturation,
-    ),
-    lightness: normalizeRange(
-      config?.colors?.lightness,
-      DEFAULT_CONFIG.colors.lightness,
-    ),
+    light: normalizeColors(config?.colors?.light, DEFAULT_CONFIG.colors.light),
+    dark: normalizeColors(config?.colors?.dark, DEFAULT_CONFIG.colors.dark),
   },
 });
 
@@ -150,6 +167,7 @@ class Petal {
     windowWidth: number,
     windowHeight: number,
     config: NormalizedSakuraConfig,
+    isDark: boolean,
   ) {
     this.windowWidth = windowWidth;
     this.windowHeight = windowHeight;
@@ -178,9 +196,10 @@ class Petal {
     this.windFactor = randomInRange(config.windFactor);
 
     // Sakura pink colors
-    const hue = randomInRange(config.colors.hue);
-    const sat = randomInRange(config.colors.saturation);
-    const lum = randomInRange(config.colors.lightness);
+    const colors = isDark ? config.colors.dark : config.colors.light;
+    const hue = randomInRange(colors.hue);
+    const sat = randomInRange(colors.saturation);
+    const lum = randomInRange(colors.lightness);
     this.color = `hsla(${hue}, ${sat}%, ${lum}%, ${this.opacity})`;
   }
 
@@ -214,18 +233,23 @@ class Petal {
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  draw(ctx: CanvasRenderingContext2D, isDark: boolean) {
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.angle);
     ctx.scale(1, Math.abs(Math.cos(this.flip))); // 3d flipping illusion
     ctx.fillStyle = this.color;
+    ctx.strokeStyle = isDark
+      ? "rgba(255, 255, 255, 0.1)"
+      : "rgba(160, 36, 86, 0.24)";
+    ctx.lineWidth = isDark ? 0.35 : 0.7;
     // draw a simple petal shape using quadratic curves
     ctx.beginPath();
     ctx.moveTo(0, this.h / 2);
     ctx.quadraticCurveTo(this.w / 2, -this.h / 4, this.w, this.h / 2);
     ctx.quadraticCurveTo(this.w / 2, this.h * 1.25, 0, this.h / 2);
     ctx.fill();
+    ctx.stroke();
     ctx.restore();
   }
 }
@@ -233,9 +257,14 @@ class Petal {
 interface SakuraCanvasProps {
   count?: number;
   config?: SakuraConfig;
+  isDark?: boolean;
 }
 
-export function SakuraCanvas({ count, config }: SakuraCanvasProps) {
+export function SakuraCanvas({
+  count,
+  config,
+  isDark = false,
+}: SakuraCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -300,7 +329,7 @@ export function SakuraCanvas({ count, config }: SakuraCanvasProps) {
 
       // Re-initialize particles
       particles = Array.from({ length: sakuraConfig.count }).map(
-        () => new Petal(width, height, sakuraConfig),
+        () => new Petal(width, height, sakuraConfig, isDark),
       );
     };
 
@@ -339,7 +368,7 @@ export function SakuraCanvas({ count, config }: SakuraCanvasProps) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach((p) => {
         p.update(time, currentWindX, currentWindY);
-        p.draw(ctx);
+        p.draw(ctx, isDark);
       });
       animationFrameId = requestAnimationFrame(render);
     };
@@ -355,7 +384,7 @@ export function SakuraCanvas({ count, config }: SakuraCanvasProps) {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
     };
-  }, [count, config]);
+  }, [count, config, isDark]);
 
   return (
     <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />

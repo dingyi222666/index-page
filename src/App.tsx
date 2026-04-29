@@ -24,28 +24,16 @@ const iconMap: Record<string, any> = {
   Mail,
 };
 
-function ThemeToggle() {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window !== "undefined") {
-      return (
-        document.documentElement.classList.contains("dark") ||
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-      );
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDark]);
-
+function ThemeToggle({
+  isDark,
+  onToggle,
+}: {
+  isDark: boolean;
+  onToggle: () => void;
+}) {
   return (
     <button
-      onClick={() => setIsDark(!isDark)}
+      onClick={onToggle}
       className="fixed top-6 right-6 z-50 p-2.5 rounded-full bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 shadow-sm transition-colors text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
       aria-label="Toggle dark mode"
     >
@@ -82,9 +70,26 @@ const AnimatedBackground = () => {
 
 export default function App() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window !== "undefined") {
+      return (
+        document.documentElement.classList.contains("dark") ||
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      );
+    }
+    return false;
+  });
   const [clicks, setClicks] = useState<{ id: string; x: number; y: number }[]>(
     [],
   );
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
 
   const handleAvatarClick = (e: MouseEvent<HTMLDivElement>) => {
     const x = e.clientX;
@@ -113,7 +118,7 @@ export default function App() {
       ref={scrollRef}
       className="h-[100dvh] w-full relative overflow-y-auto overflow-x-hidden snap-y snap-mandatory bg-transparent"
     >
-      <ThemeToggle />
+      <ThemeToggle isDark={isDark} onToggle={() => setIsDark(!isDark)} />
       <AnimatedBackground />
 
       {/* Global Scroll Progress Bar */}
@@ -123,7 +128,7 @@ export default function App() {
       />
 
       {siteData.design?.sakura?.enabled !== false && (
-        <SakuraCanvas config={siteData.design?.sakura} />
+        <SakuraCanvas config={siteData.design?.sakura} isDark={isDark} />
       )}
 
       {/* --- Screen 1: Hero Section --- */}

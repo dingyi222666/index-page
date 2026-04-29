@@ -44,9 +44,16 @@
       "pressWindStrength": 8,
       "pressChaos": 2,
       "colors": {
-        "hue": [340, 355],
-        "saturation": [70, 90],
-        "lightness": [75, 90]
+        "light": {
+          "hue": [335, 350],
+          "saturation": [78, 96],
+          "lightness": [48, 66]
+        },
+        "dark": {
+          "hue": [340, 355],
+          "saturation": [70, 90],
+          "lightness": [75, 90]
+        }
       }
     },
     "particles": {
