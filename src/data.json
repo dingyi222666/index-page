@@ -1,0 +1,191 @@
+{
+  "profile": {
+    "name": "dingyi222666",
+    "avatar": "https://github.com/dingyi222666.png",
+    "titles": ["Developer", "Rhythm game lover"],
+    "quote": "「 夜空に咲く花を摘んで，瞬く星を束ねて，君にあげる 」",
+    "about": {
+      "title": "About me",
+      "introHtml": "Hello! I'm <strong class=\"text-zinc-900 dark:text-white\">dingyi</strong>, and you can also call me <strong class=\"text-zinc-900 dark:text-white\">dingyi222666</strong> (this is my common username).",
+      "items": [
+        "Android (Kotlin/Java), Typescript, Lua Developer.",
+        "Also good at a little Python, C#.",
+        "Play <a href=\"https://osu.ppy.sh/users/29808669\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-zinc-900 dark:text-white hover:underline transition-all opacity-80 hover:opacity-100\">osu! mania</a>, chunithm, l4d2.",
+        "Currently working on <a href=\"https://github.com/ChatLunaLab\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-zinc-900 dark:text-white hover:underline transition-all opacity-80 hover:opacity-100\">ChatLuna</a>."
+      ]
+    }
+  },
+  "design": {
+    "backgroundImages": {
+      "light": "/backgrounds/anime-light.png",
+      "dark": "/backgrounds/anime-dark.png"
+    },
+    "backgroundShapes": {
+      "blur": "blur-xl"
+    },
+    "glassmorphism": {
+      "blur": "backdrop-blur-none"
+    },
+    "sakura": {
+      "enabled": true,
+      "count": 50,
+      "size": [5, 11],
+      "opacity": [0.4, 0.9],
+      "fallSpeed": [0.4, 1.3],
+      "driftSpeed": [-0.3, 0.3],
+      "flipSpeed": [0.005, 0.025],
+      "spinSpeed": [-0.01, 0.01],
+      "wobbleAmplitude": [0.5, 2.5],
+      "wobbleSpeed": [0.0005, 0.0015],
+      "windFactor": [0.5, 1.5],
+      "breezeStrength": 0.5,
+      "pointerWindStrength": 1.5,
+      "pointerVerticalWindStrength": 0.5,
+      "pressWindStrength": 8,
+      "pressChaos": 2,
+      "colors": {
+        "hue": [340, 355],
+        "saturation": [70, 90],
+        "lightness": [75, 90]
+      }
+    },
+    "particles": {
+      "count": 25,
+      "colorLight": "text-zinc-300 bg-zinc-300",
+      "colorDark": "dark:text-zinc-100 dark:bg-zinc-100"
+    }
+  },
+  "sections": {
+    "projects": "Projects",
+    "currently": "Currently",
+    "currentlyDesc": "What I've been heavily focused on this season.",
+    "expertise": "Expertise",
+    "expertiseDesc": "Technologies and domains I work with smoothly."
+  },
+  "socials": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/dingyi222666",
+      "icon": "SiGithub",
+      "color": "#181717"
+    },
+    {
+      "name": "X",
+      "url": "https://twitter.com/dingyi222666",
+      "icon": "SiX",
+      "color": "#000000"
+    },
+    {
+      "name": "Netease Cloud",
+      "url": "https://music.163.com/#/user/home?id=3318820605",
+      "icon": "SiNeteasecloudmusic",
+      "color": "#E60026"
+    },
+    {
+      "name": "Bilibili",
+      "url": "https://space.bilibili.com/228836866",
+      "icon": "SiBilibili",
+      "color": "#00A1D6"
+    },
+    {
+      "name": "Blog",
+      "url": "https://blog.dingyi222666.top",
+      "icon": "BookOpen",
+      "color": "#FF9900"
+    },
+    {
+      "name": "Telegram",
+      "url": "https://t.me/dingyi222666_channel",
+      "icon": "SiTelegram",
+      "color": "#26A5E4"
+    },
+    {
+      "name": "osu!",
+      "url": "https://osu.ppy.sh/users/29808669",
+      "icon": "SiOsu",
+      "color": "#FF66AA"
+    },
+    {
+      "name": "Mail",
+      "url": "mailto:dingyi222666@foxmail.com",
+      "icon": "Mail",
+      "color": "#EA4335"
+    }
+  ],
+  "projects": [
+    {
+      "name": "chatluna",
+      "description": "A framework and bot plugin for LLM chat with multi-model integration, extensibility, and various output formats.",
+      "url": "https://github.com/ChatLunaLab/chatluna",
+      "language": "TypeScript",
+      "color": "#3178c6",
+      "role": "Core Creator & Maintainer",
+      "techStack": ["TypeScript", "Koishi", "LLM", "Vue"]
+    },
+    {
+      "name": "TreeView",
+      "description": "An Android TreeView with RecyclerView",
+      "url": "https://github.com/dingyi222666/TreeView",
+      "language": "Kotlin",
+      "color": "#A97BFF",
+      "role": "Creator",
+      "techStack": ["Kotlin", "Android", "RecyclerView"]
+    },
+    {
+      "name": "aura-music",
+      "description": "Pure Web Music Player Like Apple Music",
+      "url": "https://github.com/dingyi222666/aura-music",
+      "language": "TypeScript",
+      "color": "#3178c6",
+      "role": "Creator",
+      "techStack": ["TypeScript", "React", "Web Audio API"]
+    },
+    {
+      "name": "MyLuaApp",
+      "description": "MyLuaApp is a light and faster software run in Android Arm Devices to develop Android software with Lua or Java.",
+      "url": "https://github.com/dingyi222666/MyLuaApp",
+      "language": "Kotlin",
+      "color": "#A97BFF",
+      "role": "Creator",
+      "techStack": ["Kotlin", "Lua", "Android"]
+    },
+    {
+      "name": "lua-parser",
+      "description": "A pure Kotlin Lua 5.3/5.4 lexer and parser that can parse source to AST and transform AST back to source.",
+      "url": "https://github.com/dingyi222666/lua-parser",
+      "language": "Kotlin",
+      "color": "#A97BFF",
+      "role": "Author & Maintainer",
+      "techStack": ["Kotlin Multiplatform", "Lua", "Lexer", "Parser"]
+    },
+    {
+      "name": "AndroLua-Standalone",
+      "description": "A standalone, low-coupling Android module extracted from AndroLua+ to make LuaJava easier to use.",
+      "url": "https://github.com/dingyi222666/AndroLua-Standalone",
+      "language": "Kotlin",
+      "color": "#A97BFF",
+      "role": "Author & Maintainer",
+      "techStack": ["Android", "Kotlin", "Lua", "LuaJava"]
+    }
+  ],
+  "now": [
+    "Maintaining ChatLuna",
+    "Following the latest LLM news",
+    "Exploring LLM plugins and agent workflows",
+    "Playing osu!mania and hitting new limits"
+  ],
+  "skills": [
+    {
+      "name": "Web",
+      "skills": ["TypeScript", "React", "Vue", "Web Audio API"]
+    },
+    {
+      "name": "Android",
+      "skills": ["Kotlin", "Java", "Lua", "RecyclerView"]
+    },
+    {
+      "name": "AI & Bots",
+      "skills": ["Koishi", "LLM", "Agent", "Langchain", "Node.js"]
+    }
+  ]
+}

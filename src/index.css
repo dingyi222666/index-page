@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Kiwi+Maru:wght@400;500&display=swap');
+@import url('https://registry.npmmirror.com/@fontsource/maple-mono/latest/files/index.css');
+@import url('https://registry.npmmirror.com/@fontsource/maple-mono/latest/files/500.css');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Kiwi Maru", ui-serif, Georgia, serif;
+  --font-mono: "Maple Mono", "Maple Mono NF", "Maple Mono NL", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-transparent text-zinc-900 overflow-x-hidden selection:bg-zinc-200 font-sans dark:text-zinc-100 dark:selection:bg-zinc-800;
+  }
+}
+
+/* Base button style */
+.brand-btn {
+  color: #71717a; 
+  background-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+  border: 1px solid #f4f4f5;
+}
+
+@media (prefers-color-scheme: dark) {
+  .brand-btn {
+    color: #a1a1aa;
+    background-color: #18181b;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    border: 1px solid #27272a;
+  }
+}
+
+.brand-btn:hover {
+  background-color: var(--brand-color);
+  color: #ffffff;
+  border-color: var(--brand-color);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+.custom-gradient-bg {
+    /* Refined, elegant light mode mesh colors */
+    --c-0: hsla(288, 100%, 86%, 0.6);
+    --c-1: hsla(330, 100%, 88%, 0.6);
+    --c-2: hsla(205, 100%, 86%, 0.6);
+    --c-3: hsla(45, 100%, 85%, 0.6);
+    --bg-color: hsla(0, 0%, 98%, 1);
+
+    --s-start-0: 0%; --s-end-0: 65vmax;
+    --s-start-1: 0%; --s-end-1: 65vmax;
+    --s-start-2: 0%; --s-end-2: 70vmax;
+    --s-start-3: 0%; --s-end-3: 65vmax;
+
+    background-color: var(--bg-color);
+
+    /* Parallax dynamic calculation anchored to mouse position */
+    --m-x: calc(var(--mouse-x, 0.5) * 100%);
+    --m-y: calc(var(--mouse-y, 0.5) * 100%);
+
+    /* Position lights around the mouse instead of fixed coordinates */
+    --x-0: calc(var(--m-x) - 15%);
+    --y-0: calc(var(--m-y) - 20%);
+
+    --x-1: calc(var(--m-x) + 20%);
+    --y-1: calc(var(--m-y) - 5%);
+
+    --x-2: calc(var(--m-x) - 10%);
+    --y-2: calc(var(--m-y) + 25%);
+
+    --x-3: calc(var(--m-x) + 25%);
+    --y-3: calc(var(--m-y) + 15%);
+
+    background-image:
+      radial-gradient(circle at var(--x-0) var(--y-0), var(--c-0) var(--s-start-0), transparent var(--s-end-0)),
+      radial-gradient(circle at var(--x-1) var(--y-1), var(--c-1) var(--s-start-1), transparent var(--s-end-1)),
+      radial-gradient(circle at var(--x-2) var(--y-2), var(--c-2) var(--s-start-2), transparent var(--s-end-2)),
+      radial-gradient(circle at var(--x-3) var(--y-3), var(--c-3) var(--s-start-3), transparent var(--s-end-3));
+
+    background-blend-mode: normal, normal, normal, normal;
+    transition: background-color 0.5s ease;
+    will-change: transform;
+}
+
+html.dark .custom-gradient-bg {
+    /* Refined, deep space nebula colors for dark mode */
+    --c-0: hsla(270, 70%, 15%, 0.8);
+    --c-1: hsla(210, 80%, 12%, 0.8);
+    --c-2: hsla(330, 60%, 15%, 0.8);
+    --c-3: hsla(180, 70%, 12%, 0.8);
+    --bg-color: hsla(240, 10%, 4%, 1);
+}
