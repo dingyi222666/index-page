@@ -1,5 +1,13 @@
 import { motion, useScroll, useSpring, AnimatePresence } from "motion/react";
-import { BookOpen, ChevronDown, Mail, Star, Sun, Moon } from "lucide-react";
+import {
+  BookOpen,
+  ChevronDown,
+  Mail,
+  NotebookPen,
+  Star,
+  Sun,
+  Moon,
+} from "lucide-react";
 import {
   SiGithub,
   SiX,
@@ -12,6 +20,7 @@ import { useRef, useState, useEffect, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import siteData from "./data.json";
 import { SakuraCanvas } from "./components/SakuraCanvas";
+import { useSectionScroll } from "./hooks/useSectionScroll";
 
 const iconMap: Record<string, any> = {
   SiGithub,
@@ -19,6 +28,7 @@ const iconMap: Record<string, any> = {
   SiNeteasecloudmusic,
   SiBilibili,
   BookOpen,
+  NotebookPen,
   SiTelegram,
   SiOsu,
   Mail,
@@ -44,6 +54,15 @@ function ThemeToggle({
 
 const AnimatedBackground = () => {
   const backgroundImages = siteData.design?.backgroundImages;
+  const blurConfig = siteData.design?.glassmorphism?.blur;
+  const lightBlur =
+    typeof blurConfig === "object"
+      ? blurConfig?.light || "backdrop-blur-md"
+      : blurConfig || "backdrop-blur-md";
+  const darkBlur =
+    typeof blurConfig === "object"
+      ? blurConfig?.dark || "backdrop-blur-none"
+      : blurConfig || "backdrop-blur-none";
 
   return (
     <div className="fixed inset-0 pointer-events-none -z-20">
@@ -51,7 +70,7 @@ const AnimatedBackground = () => {
       <img
         src={backgroundImages?.light}
         alt="Anime Background Light"
-        className="absolute inset-0 w-full h-full object-cover brightness-[0.78] saturate-[0.9] transition-opacity duration-1000 dark:opacity-0 opacity-100"
+        className="absolute inset-0 w-full h-full object-cover brightness-95 saturate-[0.95] transition-opacity duration-1000 dark:opacity-0 opacity-100"
       />
       {/* Dark mode anime bg (Starry night landscape) */}
       <img
@@ -60,9 +79,12 @@ const AnimatedBackground = () => {
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 dark:opacity-100 opacity-0"
       />
 
-      {/* Glassmorphism overlay to ensure UI legibility */}
+      {/* Theme-specific glass overlays keep light text readable without blurring dark mode. */}
       <div
-        className={`absolute inset-0 bg-zinc-100/45 dark:bg-zinc-950/70 ${siteData.design?.glassmorphism?.blur || "backdrop-blur-sm"} transition-colors duration-1000`}
+        className={`absolute inset-0 bg-white/45 ${lightBlur} opacity-100 transition-opacity duration-1000 dark:opacity-0`}
+      />
+      <div
+        className={`absolute inset-0 bg-zinc-950/70 ${darkBlur} opacity-0 transition-opacity duration-1000 dark:opacity-100`}
       />
     </div>
   );
@@ -70,6 +92,7 @@ const AnimatedBackground = () => {
 
 export default function App() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollToElementId } = useSectionScroll(scrollRef);
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
       return (
@@ -103,6 +126,11 @@ export default function App() {
     setTimeout(() => {
       setClicks((prev) => prev.filter((c) => c.id !== newClick.id));
     }, 1000);
+  };
+
+  const handleDiscoverClick = (e: MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    scrollToElementId("projects");
   };
 
   // Create a spring-based scrolling progress value
@@ -193,10 +221,10 @@ export default function App() {
           }}
           className="text-center space-y-4"
         >
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 drop-shadow-sm">
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-zinc-100">
             {siteData.profile.name}
           </h1>
-          <p className="text-sm md:text-base font-medium text-zinc-600 dark:text-zinc-400 tracking-wider">
+          <p className="text-sm md:text-base font-medium text-slate-700 dark:text-zinc-400 tracking-wider">
             {siteData.profile.titles.join(" / ")}
           </p>
           <div className="flex flex-row flex-wrap justify-center gap-3 pt-6">
@@ -227,7 +255,7 @@ export default function App() {
           className="mt-8 relative"
         >
           <div className="absolute inset-0 bg-white/40 dark:bg-black/20 blur-xl rounded-full -z-10" />
-          <p className="font-serif text-lg md:text-xl text-zinc-600 dark:text-zinc-400 font-medium tracking-wide text-center px-6 py-2">
+          <p className="font-serif text-lg md:text-xl text-slate-700 dark:text-zinc-400 font-medium tracking-wide text-center px-6 py-2">
             {siteData.profile.quote}
           </p>
         </motion.div>
@@ -235,6 +263,7 @@ export default function App() {
         {/* Scroll Indicator */}
         <motion.a
           href="#projects"
+          onClick={handleDiscoverClick}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, y: [0, 8, 0] }}
           transition={{
@@ -246,7 +275,7 @@ export default function App() {
               ease: "easeInOut",
             },
           }}
-          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center text-zinc-400 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 transition-colors cursor-pointer"
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center text-slate-600 dark:text-zinc-500 hover:text-slate-900 dark:hover:text-zinc-300 transition-colors cursor-pointer"
         >
           <span className="text-[10px] tracking-[0.2em] uppercase mb-2 font-bold">
             Discover
@@ -267,7 +296,7 @@ export default function App() {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 dark:text-zinc-100 tracking-tight">
               {siteData.sections.projects}
             </h2>
           </motion.div>
@@ -288,11 +317,11 @@ export default function App() {
                   duration: 0.6,
                   delay: idx * 0.05,
                 }}
-                className="group flex flex-col p-5 rounded-2xl border border-zinc-200/80 dark:border-zinc-800/80 bg-white/60 dark:bg-zinc-900/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/80 transition-colors duration-300 w-full text-left shadow-sm backdrop-blur-sm h-full"
+                className="group flex flex-col p-5 rounded-2xl border border-white/60 dark:border-zinc-800/80 bg-white/45 dark:bg-zinc-900/40 hover:bg-white/55 dark:hover:bg-zinc-800/80 transition-colors duration-300 w-full text-left shadow-sm backdrop-blur-xl h-full"
               >
                 <div className="flex flex-col gap-3 mb-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate pr-2">
+                    <span className="text-lg font-semibold text-slate-900 dark:text-zinc-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors truncate pr-2">
                       {project.name}
                     </span>
                     <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -300,19 +329,19 @@ export default function App() {
                         className="w-2 h-2 rounded-full shadow-sm"
                         style={{ backgroundColor: project.color }}
                       />
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
+                      <span className="text-xs text-slate-600 dark:text-zinc-400 font-medium">
                         {project.language}
                       </span>
                     </div>
                   </div>
                   {project.role && (
-                    <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400 px-2 py-0.5 bg-zinc-100 dark:bg-zinc-800/60 rounded-md w-fit">
+                    <span className="text-xs font-medium text-slate-600 dark:text-zinc-400 px-2 py-0.5 bg-white/55 dark:bg-zinc-800/60 rounded-md w-fit backdrop-blur-md">
                       {project.role}
                     </span>
                   )}
                 </div>
 
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 flex-grow mb-5 leading-relaxed line-clamp-3">
+                <p className="text-sm text-slate-600 dark:text-zinc-400 flex-grow mb-5 leading-relaxed line-clamp-3">
                   {project.description}
                 </p>
 
@@ -321,7 +350,7 @@ export default function App() {
                     {project.techStack.map((tech) => (
                       <span
                         key={tech}
-                        className="px-2 py-1 rounded-md bg-zinc-100/80 dark:bg-zinc-800 text-[10px] sm:text-[11px] text-zinc-500 dark:text-zinc-500 font-mono font-medium"
+                        className="px-2 py-1 rounded-md bg-white/55 dark:bg-zinc-800 text-[10px] sm:text-[11px] text-slate-600 dark:text-zinc-500 font-mono font-medium backdrop-blur-md"
                       >
                         {tech}
                       </span>
@@ -350,11 +379,11 @@ export default function App() {
               className="flex-1 w-full flex flex-col"
             >
               <div className="mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-3">
+                <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 dark:text-zinc-100 tracking-tight flex items-center gap-3">
                   <Star className="w-7 h-7 text-yellow-500 fill-yellow-500/20" />
                   {siteData.sections.currently}
                 </h2>
-                <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-400 mt-2 font-medium">
+                <p className="text-sm md:text-base text-slate-600 dark:text-zinc-400 mt-2 font-medium">
                   {siteData.sections.currentlyDesc}
                 </p>
               </div>
@@ -369,8 +398,8 @@ export default function App() {
                     transition={{ delay: idx * 0.1 }}
                     className="flex items-start gap-4 group"
                   >
-                    <div className="w-1.5 h-1.5 mt-2 rounded-full bg-zinc-400 dark:bg-zinc-500 group-hover:bg-blue-500 group-hover:scale-150 transition-all duration-300 shadow-sm flex-shrink-0" />
-                    <p className="text-base text-zinc-800 dark:text-zinc-200 font-medium tracking-wide leading-relaxed">
+                    <div className="w-1.5 h-1.5 mt-2 rounded-full bg-slate-500 dark:bg-zinc-500 group-hover:bg-blue-500 group-hover:scale-150 transition-all duration-300 shadow-sm flex-shrink-0" />
+                    <p className="text-base text-slate-800 dark:text-zinc-200 font-medium tracking-wide leading-relaxed">
                       {item}
                     </p>
                   </motion.div>
@@ -395,11 +424,11 @@ export default function App() {
               className="flex-[1.2] w-full flex flex-col"
             >
               <div className="mb-8">
-                <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight flex items-center gap-3">
+                <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 dark:text-zinc-100 tracking-tight flex items-center gap-3">
                   <BookOpen className="w-7 h-7 text-blue-500" />
                   {siteData.sections.expertise}
                 </h2>
-                <p className="text-sm md:text-base text-zinc-600 dark:text-zinc-400 mt-2 font-medium">
+                <p className="text-sm md:text-base text-slate-600 dark:text-zinc-400 mt-2 font-medium">
                   {siteData.sections.expertiseDesc}
                 </p>
               </div>
@@ -413,14 +442,14 @@ export default function App() {
                     viewport={{ once: true }}
                     transition={{ delay: 0.2 + idx * 0.1 }}
                   >
-                    <h3 className="text-sm font-bold text-zinc-500 dark:text-zinc-400 mb-4">
+                    <h3 className="text-sm font-semibold text-slate-600 dark:text-zinc-400 mb-4">
                       {group.name}
                     </h3>
                     <div className="flex flex-wrap gap-x-6 gap-y-2">
                       {group.skills.map((skill) => (
                         <span
                           key={skill}
-                          className="text-sm font-medium text-zinc-700 dark:text-zinc-300 flex items-center before:content-[''] before:inline-block before:w-1 before:h-1 before:rounded-full before:bg-zinc-300 dark:before:bg-zinc-600 before:mr-2"
+                          className="text-sm font-medium text-slate-700 dark:text-zinc-300 flex items-center before:content-[''] before:inline-block before:w-1 before:h-1 before:rounded-full before:bg-slate-400 dark:before:bg-zinc-600 before:mr-2"
                         >
                           {skill}
                         </span>
@@ -448,12 +477,12 @@ export default function App() {
             transition={{ type: "spring", bounce: 0.5, duration: 0.8 }}
             className="space-y-8"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight pb-2 border-b border-zinc-200 dark:border-zinc-800">
+            <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 dark:text-zinc-100 tracking-tight pb-2 border-b border-zinc-200 dark:border-zinc-800">
               {siteData.profile.about.title}
             </h2>
-            <div className="space-y-4 text-zinc-700 dark:text-zinc-300 text-sm md:text-base leading-relaxed mix-blend-normal">
+            <div className="space-y-4 text-slate-700 dark:text-zinc-300 text-sm md:text-base leading-relaxed mix-blend-normal">
               <p
-                className="font-medium text-base mb-6 text-zinc-800 dark:text-zinc-200"
+                className="font-medium text-base mb-6 text-slate-800 dark:text-zinc-200"
                 dangerouslySetInnerHTML={{
                   __html: siteData.profile.about.introHtml,
                 }}

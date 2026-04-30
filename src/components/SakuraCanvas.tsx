@@ -288,6 +288,7 @@ export function SakuraCanvas({
     let isMouseActive = false;
     let currentWindX = 0;
     let currentWindY = 0;
+    let scrollBoostY = 0;
 
     const handlePointerMove = (e: PointerEvent) => {
       isMouseActive = true;
@@ -304,12 +305,16 @@ export function SakuraCanvas({
       isMouseActive = false;
       isPressed = false;
     };
+    const handleWheel = (e: WheelEvent) => {
+      scrollBoostY += Math.max(-10, Math.min(10, e.deltaY * 0.035));
+    };
 
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointerup", handlePointerUp);
     window.addEventListener("pointercancel", handlePointerUp);
     window.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("wheel", handleWheel, { passive: true });
 
     // Resize handler
     const handleResize = () => {
@@ -364,10 +369,11 @@ export function SakuraCanvas({
       const lerpSpeed = isPressed ? 0.05 : 0.01;
       currentWindX += (targetWindX - currentWindX) * lerpSpeed;
       currentWindY += (targetWindY - currentWindY) * lerpSpeed;
+      scrollBoostY *= 0.88;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach((p) => {
-        p.update(time, currentWindX, currentWindY);
+        p.update(time, currentWindX, currentWindY + scrollBoostY);
         p.draw(ctx, isDark);
       });
       animationFrameId = requestAnimationFrame(render);
@@ -381,6 +387,7 @@ export function SakuraCanvas({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
       window.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationFrameId);
     };

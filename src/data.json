@@ -6,12 +6,12 @@
     "quote": "「 夜空に咲く花を摘んで，瞬く星を束ねて，君にあげる 」",
     "about": {
       "title": "About me",
-      "introHtml": "Hello! I'm <strong class=\"text-zinc-900 dark:text-white\">dingyi</strong>, and you can also call me <strong class=\"text-zinc-900 dark:text-white\">dingyi222666</strong> (this is my common username).",
+      "introHtml": "Hello! I'm <strong class=\"text-zinc-950 dark:text-white font-bold\">dingyi</strong>, and you can also call me <strong class=\"text-zinc-950 dark:text-white font-bold\">dingyi222666</strong> (this is my common username).",
       "items": [
         "Android (Kotlin/Java), Typescript, Lua Developer.",
         "Also good at a little Python, C#.",
-        "Play <a href=\"https://osu.ppy.sh/users/29808669\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-zinc-900 dark:text-white hover:underline transition-all opacity-80 hover:opacity-100\">osu! mania</a>, chunithm, l4d2.",
-        "Currently working on <a href=\"https://github.com/ChatLunaLab\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-zinc-900 dark:text-white hover:underline transition-all opacity-80 hover:opacity-100\">ChatLuna</a>."
+        "Play <a href=\"https://osu.ppy.sh/users/29808669\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-blue-600 dark:text-sky-400 hover:underline transition-colors\">osu! mania</a>, chunithm, l4d2.",
+        "Currently working on <a href=\"https://github.com/ChatLunaLab\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-blue-600 dark:text-sky-400 hover:underline transition-colors\">ChatLuna</a>."
       ]
     }
   },
@@ -24,7 +24,10 @@
       "blur": "blur-xl"
     },
     "glassmorphism": {
-      "blur": "backdrop-blur-none"
+      "blur": {
+        "light": "backdrop-blur-md",
+        "dark": "backdrop-blur-none"
+      }
     },
     "sakura": {
       "enabled": true,
@@ -97,7 +100,7 @@
     {
       "name": "Blog",
       "url": "https://blog.dingyi222666.top",
-      "icon": "BookOpen",
+      "icon": "NotebookPen",
       "color": "#FF9900"
     },
     {
