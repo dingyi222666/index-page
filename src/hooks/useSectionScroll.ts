@@ -1,9 +1,14 @@
 import { useEffect, useRef, type RefObject } from "react";
 
+const WHEEL_THRESHOLD = 40;
+const WHEEL_IDLE_DELAY = 180;
+
 export function useSectionScroll(scrollRef: RefObject<HTMLDivElement | null>) {
   const animationRef = useRef<number | null>(null);
   const targetIndexRef = useRef<number | null>(null);
-  const scrollDirectionRef = useRef<1 | -1 | null>(null);
+  const wheelDeltaRef = useRef(0);
+  const wheelHandledRef = useRef(false);
+  const wheelIdleTimerRef = useRef<number | null>(null);
 
   const scrollToPosition = (end: number) => {
     const container = scrollRef.current;
@@ -37,7 +42,6 @@ export function useSectionScroll(scrollRef: RefObject<HTMLDivElement | null>) {
       container.scrollTop = end;
       container.style.scrollSnapType = previousSnapType;
       animationRef.current = null;
-      scrollDirectionRef.current = null;
     };
 
     animationRef.current = requestAnimationFrame(animateScroll);
@@ -47,8 +51,8 @@ export function useSectionScroll(scrollRef: RefObject<HTMLDivElement | null>) {
     const container = scrollRef.current;
     if (!container) return 0;
 
-    const sections = Array.from(container.querySelectorAll("section"));
-    return sections.reduce((nearest, section, index) => {
+    const sections = [...container.querySelectorAll<HTMLElement>("section")];
+    return sections.reduce<number>((nearest, section, index) => {
       const nearestDistance = Math.abs(
         sections[nearest].offsetTop - container.scrollTop,
       );
@@ -61,7 +65,7 @@ export function useSectionScroll(scrollRef: RefObject<HTMLDivElement | null>) {
     const container = scrollRef.current;
     if (!container) return;
 
-    const sections = Array.from(container.querySelectorAll("section"));
+    const sections = [...container.querySelectorAll<HTMLElement>("section")];
     const currentIndex = targetIndexRef.current ?? getNearestSectionIndex();
     const targetIndex = Math.min(
       Math.max(currentIndex + direction, 0),
@@ -82,25 +86,66 @@ export function useSectionScroll(scrollRef: RefObject<HTMLDivElement | null>) {
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
+    const isMacOS = /Macintosh|Mac OS X/.test(navigator.userAgent);
 
     const handleWheel = (event: WheelEvent) => {
-      if (event.ctrlKey || Math.abs(event.deltaY) < 8) return;
-
-      event.preventDefault();
-      const direction = event.deltaY > 0 ? 1 : -1;
-      if (animationRef.current && scrollDirectionRef.current === direction) {
+      if (
+        event.ctrlKey ||
+        event.deltaY === 0 ||
+        Math.abs(event.deltaX) >= Math.abs(event.deltaY)
+      ) {
         return;
       }
 
-      scrollDirectionRef.current = direction;
-      scrollToSection(direction);
+      event.preventDefault();
+
+      if (wheelIdleTimerRef.current !== null) {
+        window.clearTimeout(wheelIdleTimerRef.current);
+      }
+      wheelIdleTimerRef.current = window.setTimeout(() => {
+        wheelDeltaRef.current = 0;
+        wheelHandledRef.current = false;
+        wheelIdleTimerRef.current = null;
+      }, WHEEL_IDLE_DELAY);
+
+      if (wheelHandledRef.current) {
+        return;
+      }
+
+      const deltaMultiplier =
+        event.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 16
+          : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? container.clientHeight
+            : 1;
+      const delta = event.deltaY * deltaMultiplier;
+
+      if (
+        wheelDeltaRef.current !== 0 &&
+        Math.sign(wheelDeltaRef.current) !== Math.sign(delta)
+      ) {
+        wheelDeltaRef.current = 0;
+      }
+      wheelDeltaRef.current += delta;
+
+      if (Math.abs(wheelDeltaRef.current) < WHEEL_THRESHOLD) {
+        return;
+      }
+
+      wheelHandledRef.current = true;
+      scrollToSection(wheelDeltaRef.current > 0 ? 1 : -1);
     };
 
-    container.addEventListener("wheel", handleWheel, { passive: false });
+    if (!isMacOS) {
+      container.addEventListener("wheel", handleWheel, { passive: false });
+    }
     return () => {
       container.removeEventListener("wheel", handleWheel);
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
+      }
+      if (wheelIdleTimerRef.current !== null) {
+        window.clearTimeout(wheelIdleTimerRef.current);
       }
     };
   }, []);

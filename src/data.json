@@ -68,9 +68,9 @@
   "sections": {
     "projects": "Projects",
     "currently": "Currently",
-    "currentlyDesc": "What I've been heavily focused on this season.",
-    "expertise": "Expertise",
-    "expertiseDesc": "Technologies and domains I work with smoothly."
+    "currentlyDesc": "What I'm spending most of my time on.",
+    "expertise": "Tech Stack",
+    "expertiseDesc": "Languages and areas I work with."
   },
   "socials": [
     {
@@ -179,23 +179,22 @@
     }
   ],
   "now": [
-    "Maintaining ChatLuna",
-    "Following the latest LLM news",
-    "Exploring LLM plugins and agent workflows",
-    "Playing osu!mania and hitting new limits"
+    "Developing and maintaining ChatLuna",
+    "Writing and maintaining my blog",
+    "Maintaining other open-source projects on GitHub"
   ],
   "skills": [
     {
-      "name": "Web",
-      "skills": ["TypeScript", "React", "Vue", "Web Audio API"]
+      "name": "Favorites",
+      "skills": ["Lua", "Kotlin"]
     },
     {
-      "name": "Android",
-      "skills": ["Kotlin", "Java", "Lua", "RecyclerView"]
+      "name": "Languages",
+      "skills": ["Lua", "Kotlin", "Java", "TypeScript", "Python"]
     },
     {
-      "name": "AI & Bots",
-      "skills": ["Koishi", "LLM", "Agent", "Langchain", "Node.js"]
+      "name": "Focus",
+      "skills": ["Android", "Node.js / Frontend", "AI Tools & Workflows"]
     }
   ]
 }
