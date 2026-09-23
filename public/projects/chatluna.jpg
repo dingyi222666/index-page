@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" width="1280" height="800">
+  <rect width="1280" height="800" fill="#141416"/>
+  <g stroke="#fbfafb" stroke-opacity="0.10" stroke-width="1">
+    <line x1="0" y1="264" x2="1280" y2="264"/>
+    <line x1="0" y1="528" x2="1280" y2="528"/>
+    <line x1="422" y1="0" x2="422" y2="800"/>
+    <line x1="845" y1="0" x2="845" y2="800"/>
+  </g>
+  <circle cx="640" cy="352" r="160" fill="#3178c6" fill-opacity="0.85"/>
+  <rect x="115" y="72" width="282" height="3" fill="#fbfafb" fill-opacity="0.5"/>
+  
+  <g>
+    <rect x="797" y="585" width="427" height="142" fill="#141416"/>
+    <text x="1218" y="692" font-family="'Helvetica Neue',Arial,'Hiragino Sans','PingFang SC',sans-serif" font-size="84" font-weight="600" fill="#fbfafb" text-anchor="end">chatluna</text>
+    <text x="1218" y="567" font-family="'SFMono-Regular','Menlo','Consolas',monospace" font-size="43" letter-spacing="3" fill="#3178c6" text-anchor="end">TYPESCRIPT</text>
+  </g>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <rect width="1920" height="1080" fill="#141416"/>
+  <g stroke="#fbfafb" stroke-opacity="0.10" stroke-width="1">
+    <line x1="0" y1="356" x2="1920" y2="356"/>
+    <line x1="0" y1="713" x2="1920" y2="713"/>
+    <line x1="634" y1="0" x2="634" y2="1080"/>
+    <line x1="1267" y1="0" x2="1267" y2="1080"/>
+  </g>
+  <circle cx="960" cy="475" r="216" fill="#f7a8c4" fill-opacity="0.85"/>
+  <rect x="173" y="97" width="422" height="3" fill="#fbfafb" fill-opacity="0.5"/>
+  
+  <g>
+    <rect x="1618" y="791" width="227" height="192" fill="#141416"/>
+    <text x="1839" y="935" font-family="'Helvetica Neue',Arial,'Hiragino Sans','PingFang SC',sans-serif" font-size="113" font-weight="600" fill="#fbfafb" text-anchor="end">第一幕</text>
+    <text x="1839" y="771" font-family="'SFMono-Regular','Menlo','Consolas',monospace" font-size="58" letter-spacing="3" fill="#f7a8c4" text-anchor="end">SCENE ONE</text>
+  </g>
+</svg>

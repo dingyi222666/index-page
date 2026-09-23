@@ -1,97 +1,212 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&family=Kiwi+Maru:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap');
 @import url('https://registry.npmmirror.com/@fontsource/maple-mono/latest/files/index.css');
 @import url('https://registry.npmmirror.com/@fontsource/maple-mono/latest/files/500.css');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Kiwi Maru", ui-serif, Georgia, serif;
-  --font-mono: "Maple Mono", "Maple Mono NF", "Maple Mono NL", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  /* Heavy grotesk for display type, with CJK fallbacks so Japanese and
+     Chinese never fall back to a serif. */
+  --font-display: "Inter", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-sans: "Inter", "Hiragino Sans", "Noto Sans JP", "PingFang SC",
+    "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Maple Mono", "Maple Mono NF", ui-monospace, SFMono-Regular,
+    Menlo, Monaco, Consolas, monospace;
+
+  /* Sakura-led palette: paper white, greys, one pink doing all the work. */
+  --color-paper: #fbfafb;
+  --color-mist: #f2f0f2;
+  --color-smoke: #e4e2e7;
+  --color-line: #dedade;
+  --color-gray: #8b8b93;
+  --color-ink: #141416;
+  --color-sakura: #f7a8c4;
+  --color-sakura-deep: #e0638f;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-paper: #101012;
+    --color-mist: #17171b;
+    --color-smoke: #1c1c22;
+    --color-line: #2c2c33;
+    --color-gray: #8d8d97;
+    --color-ink: #f2f0f2;
+    --color-sakura: #f4a0bd;
+    --color-sakura-deep: #f0709f;
+  }
+
+  /* Opaque root: a transparent root is what shows as a white page if a
+     section ever fails to paint. */
   html {
-    scroll-behavior: smooth;
+    background-color: var(--color-paper);
   }
+
   body {
-    @apply bg-transparent text-zinc-900 overflow-x-hidden selection:bg-zinc-200 font-sans dark:text-zinc-100 dark:selection:bg-zinc-800;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    /* The page scrolls natively — panels are ordinary stacked sections.
+       Only horizontal overflow is suppressed. */
+    overflow-x: hidden;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-sakura);
+    color: #141416;
   }
 }
 
-/* Base button style */
-.brand-btn {
-  color: #71717a; 
-  background-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  transition: all 0.2s ease;
-  border: 1px solid #f4f4f5;
+/* ------------------------------------------------------------------ */
+/* The reference's backbone: a 20-column grid with gutter insets.      */
+/* Every block is placed by column rather than by flexbox.             */
+/* ------------------------------------------------------------------ */
+
+.grid-20 {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
 }
 
-@media (prefers-color-scheme: dark) {
-  .brand-btn {
-    color: #a1a1aa;
-    background-color: #18181b;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    border: 1px solid #27272a;
+.grid-10 {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+}
+
+.grid-inner {
+  grid-column: 2 / -2;
+}
+
+/* Display type: tight, uppercase, ultrabold. The reference's whole voice
+   lives here, so it gets its own class rather than being repeated. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  line-height: 0.86;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+/* Endless ticker. The track is duplicated 8x and travels exactly one half,
+   so the loop is seamless however wide the viewport gets. */
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
-.brand-btn:hover {
-  background-color: var(--brand-color);
-  color: #ffffff;
-  border-color: var(--brand-color);
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 26s) linear infinite;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-.custom-gradient-bg {
-    /* Refined, elegant light mode mesh colors */
-    --c-0: hsla(288, 100%, 86%, 0.6);
-    --c-1: hsla(330, 100%, 88%, 0.6);
-    --c-2: hsla(205, 100%, 86%, 0.6);
-    --c-3: hsla(45, 100%, 85%, 0.6);
-    --bg-color: hsla(0, 0%, 98%, 1);
-
-    --s-start-0: 0%; --s-end-0: 65vmax;
-    --s-start-1: 0%; --s-end-1: 65vmax;
-    --s-start-2: 0%; --s-end-2: 70vmax;
-    --s-start-3: 0%; --s-end-3: 65vmax;
-
-    background-color: var(--bg-color);
-
-    /* Parallax dynamic calculation anchored to mouse position */
-    --m-x: calc(var(--mouse-x, 0.5) * 100%);
-    --m-y: calc(var(--mouse-y, 0.5) * 100%);
-
-    /* Position lights around the mouse instead of fixed coordinates */
-    --x-0: calc(var(--m-x) - 15%);
-    --y-0: calc(var(--m-y) - 20%);
-
-    --x-1: calc(var(--m-x) + 20%);
-    --y-1: calc(var(--m-y) - 5%);
-
-    --x-2: calc(var(--m-x) - 10%);
-    --y-2: calc(var(--m-y) + 25%);
-
-    --x-3: calc(var(--m-x) + 25%);
-    --y-3: calc(var(--m-y) + 15%);
-
-    background-image:
-      radial-gradient(circle at var(--x-0) var(--y-0), var(--c-0) var(--s-start-0), transparent var(--s-end-0)),
-      radial-gradient(circle at var(--x-1) var(--y-1), var(--c-1) var(--s-start-1), transparent var(--s-end-1)),
-      radial-gradient(circle at var(--x-2) var(--y-2), var(--c-2) var(--s-start-2), transparent var(--s-end-2)),
-      radial-gradient(circle at var(--x-3) var(--y-3), var(--c-3) var(--s-start-3), transparent var(--s-end-3));
-
-    background-blend-mode: normal, normal, normal, normal;
-    transition: background-color 0.5s ease;
-    will-change: transform;
+.marquee-track--reverse {
+  animation-direction: reverse;
 }
 
-html.dark .custom-gradient-bg {
-    /* Refined, deep space nebula colors for dark mode */
-    --c-0: hsla(270, 70%, 15%, 0.8);
-    --c-1: hsla(210, 80%, 12%, 0.8);
-    --c-2: hsla(330, 60%, 15%, 0.8);
-    --c-3: hsla(180, 70%, 12%, 0.8);
-    --bg-color: hsla(240, 10%, 4%, 1);
+/* Square cells with genuinely dashed rules. The SVG is percent-encoded —
+   raw < and > in a data URI are not valid and break the whole declaration. */
+.square-grid {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M0 0.5H28M0.5 0V28' fill='none' stroke='%23141416' stroke-width='0.75' stroke-dasharray='3 4'/%3E%3C/svg%3E");
+  background-size: 28px 28px;
+}
+
+/* Borders use --color-ink, which flips to near-white in dark mode, so the
+   grid rule has to follow it. */
+.dark .square-grid {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28'%3E%3Cpath d='M0 0.5H28M0.5 0V28' fill='none' stroke='%23f2f0f2' stroke-width='0.75' stroke-dasharray='3 4'/%3E%3C/svg%3E");
+}
+
+.text-hollow {
+  color: transparent;
+  -webkit-text-stroke: 1px currentColor;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.blink {
+  animation: blink 1.1s steps(1, end) infinite;
+}
+
+/* A rule that draws itself in when a block is entered. */
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.draw-in {
+  transform-origin: left;
+  animation: draw 0.9s var(--ease-out-expo) both;
+}
+
+/* ------------------------------------------------------------------ */
+/* Curtain                                                             */
+/* ------------------------------------------------------------------ */
+
+@keyframes preloader-out {
+  to {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+.preloader {
+  animation: preloader-out 0.8s cubic-bezier(0.76, 0, 0.24, 1) 0.9s both;
+}
+
+/* ------------------------------------------------------------------ */
+/* Per-word entrance: each word rides up out of its own clipped box.   */
+/* ------------------------------------------------------------------ */
+
+.word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+
+@keyframes word-up {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.word-up {
+  display: inline-block;
+  animation: word-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

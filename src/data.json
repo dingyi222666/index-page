@@ -1,126 +1,67 @@
 {
+  "hero": {
+    "images": [
+      {
+        "url": "/anime/yurucamp-s2.jpg",
+        "title": "Yuru Camp",
+        "subtitle": "Season 2",
+        "accent": "#f7a8c4"
+      },
+      {
+        "url": "/anime/nonnonbiyori.jpg",
+        "title": "Non Non Biyori",
+        "subtitle": "Repeat",
+        "accent": "#8b8b93"
+      },
+      {
+        "url": "/anime/k-on-s2.jpg",
+        "title": "K-On!!",
+        "subtitle": "Season 2",
+        "accent": "#e0638f"
+      },
+      {
+        "url": "/anime/yuyushiki.jpg",
+        "title": "Yuyushiki",
+        "subtitle": "Everyday",
+        "accent": "#f7a8c4"
+      }
+    ]
+  },
   "profile": {
     "name": "dingyi222666",
+    "displayName": "dingyi222666",
+    "shortName": "dingyi",
+    "handle": "@dingyi222666",
     "avatar": "https://q1.qlogo.cn/g?b=qq&nk=2187778735&s=640",
     "titles": ["Developer", "Rhythm game lover"],
     "quote": "「 夜空に咲く花を摘んで，瞬く星を束ねて，君にあげる 」",
+    "location": "China",
     "about": {
-      "title": "About me",
-      "introHtml": "Hello! I'm <strong class=\"text-zinc-950 dark:text-white font-bold\">dingyi</strong>, and you can also call me <strong class=\"text-zinc-950 dark:text-white font-bold\">dingyi222666</strong> (this is my common username).",
+      "title": "About",
+      "introHtml": "Hello! I'm <strong>dingyi222666</strong>.",
       "items": [
-        "Android (Kotlin/Java), Typescript, Lua Developer.",
-        "Also good at a little Python, C#.",
-        "Play <a href=\"https://osu.ppy.sh/users/29808669\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-blue-600 dark:text-sky-400 hover:underline transition-colors\">osu! mania</a>, chunithm, l4d2.",
-        "Currently working on <a href=\"https://github.com/ChatLunaLab\" target=\"_blank\" rel=\"noreferrer\" class=\"font-semibold text-blue-600 dark:text-sky-400 hover:underline transition-colors\">ChatLuna</a>."
+        "Android (Kotlin/Java), TypeScript and Lua developer.",
+        "Also comfortable in Python and a little C#.",
+        "Plays osu!mania, CHUNITHM and L4D2.",
+        "Currently building ChatLuna."
       ]
-    }
-  },
-  "design": {
-    "backgroundImages": {
-      "light": "/backgrounds/anime-light.png",
-      "dark": "/backgrounds/anime-dark.png"
-    },
-    "backgroundShapes": {
-      "blur": "blur-xl"
-    },
-    "glassmorphism": {
-      "blur": {
-        "light": "backdrop-blur-md",
-        "dark": "backdrop-blur-none"
-      }
-    },
-    "sakura": {
-      "enabled": true,
-      "count": 50,
-      "size": [5, 11],
-      "opacity": [0.4, 0.9],
-      "fallSpeed": [0.4, 1.3],
-      "driftSpeed": [-0.3, 0.3],
-      "flipSpeed": [0.005, 0.025],
-      "spinSpeed": [-0.01, 0.01],
-      "wobbleAmplitude": [0.5, 2.5],
-      "wobbleSpeed": [0.0005, 0.0015],
-      "windFactor": [0.5, 1.5],
-      "breezeStrength": 0.5,
-      "pointerWindStrength": 1.5,
-      "pointerVerticalWindStrength": 0.5,
-      "pressWindStrength": 8,
-      "pressChaos": 2,
-      "colors": {
-        "light": {
-          "hue": [335, 350],
-          "saturation": [78, 96],
-          "lightness": [48, 66]
-        },
-        "dark": {
-          "hue": [340, 355],
-          "saturation": [70, 90],
-          "lightness": [75, 90]
-        }
-      }
-    },
-    "particles": {
-      "count": 25,
-      "colorLight": "text-zinc-300 bg-zinc-300",
-      "colorDark": "dark:text-zinc-100 dark:bg-zinc-100"
     }
   },
   "sections": {
     "projects": "Projects",
-    "currently": "Currently",
-    "currentlyDesc": "What I'm spending most of my time on.",
-    "expertise": "Tech Stack",
-    "expertiseDesc": "Languages and areas I work with."
+    "games": "Games",
+    "about": "Profile",
+    "contact": "Contact"
   },
   "socials": [
-    {
-      "name": "GitHub",
-      "url": "https://github.com/dingyi222666",
-      "icon": "SiGithub",
-      "color": "#181717"
-    },
-    {
-      "name": "X",
-      "url": "https://twitter.com/dingyi222666",
-      "icon": "SiX",
-      "color": "#000000"
-    },
-    {
-      "name": "Netease Cloud",
-      "url": "https://music.163.com/#/user/home?id=3318820605",
-      "icon": "SiNeteasecloudmusic",
-      "color": "#E60026"
-    },
-    {
-      "name": "Bilibili",
-      "url": "https://space.bilibili.com/228836866",
-      "icon": "SiBilibili",
-      "color": "#00A1D6"
-    },
-    {
-      "name": "Blog",
-      "url": "https://blog.dingyi222666.top",
-      "icon": "NotebookPen",
-      "color": "#FF9900"
-    },
-    {
-      "name": "Telegram",
-      "url": "https://t.me/dingyi222666_channel",
-      "icon": "SiTelegram",
-      "color": "#26A5E4"
-    },
-    {
-      "name": "osu!",
-      "url": "https://osu.ppy.sh/users/29808669",
-      "icon": "SiOsu",
-      "color": "#FF66AA"
-    },
-    {
-      "name": "Mail",
-      "url": "mailto:dingyi222666@foxmail.com",
-      "icon": "Mail",
-      "color": "#EA4335"
-    }
+    { "name": "GitHub", "url": "https://github.com/dingyi222666", "handle": "dingyi222666", "icon": "SiGithub" },
+    { "name": "X", "url": "https://twitter.com/dingyi222666", "handle": "@dingyi222666", "icon": "SiX" },
+    { "name": "Netease Cloud", "url": "https://music.163.com/#/user/home?id=3318820605", "handle": "3318820605", "icon": "SiNeteasecloudmusic" },
+    { "name": "Bilibili", "url": "https://space.bilibili.com/228836866", "handle": "228836866", "icon": "SiBilibili" },
+    { "name": "Blog", "url": "https://blog.dingyi222666.top", "handle": "blog.dingyi222666.top", "icon": "NotebookPen" },
+    { "name": "Telegram", "url": "https://t.me/dingyi222666_channel", "handle": "@dingyi222666_channel", "icon": "SiTelegram" },
+    { "name": "osu!", "url": "https://osu.ppy.sh/users/29808669", "handle": "29808669", "icon": "SiOsu" },
+    { "name": "Mail", "url": "mailto:dingyi222666@foxmail.com", "handle": "dingyi222666@foxmail.com", "icon": "Mail" }
   ],
   "projects": [
     {
@@ -130,43 +71,53 @@
       "language": "TypeScript",
       "color": "#3178c6",
       "role": "Core Creator & Maintainer",
-      "techStack": ["TypeScript", "Koishi", "LLM", "Vue"]
+      "techStack": ["TypeScript", "Koishi", "LLM", "Vue"],
+      "media": { "type": "image", "orientation": "landscape", "src": "/scenery/scenery-1.jpg" },
+      "private": false
     },
     {
       "name": "TreeView",
-      "description": "An Android TreeView with RecyclerView",
+      "description": "An Android TreeView built on RecyclerView.",
       "url": "https://github.com/dingyi222666/TreeView",
       "language": "Kotlin",
       "color": "#A97BFF",
       "role": "Creator",
-      "techStack": ["Kotlin", "Android", "RecyclerView"]
+      "techStack": ["Kotlin", "Android", "RecyclerView"],
+      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-2.jpg" },
+      "private": false
     },
     {
       "name": "aura-music",
-      "description": "Pure Web Music Player Like Apple Music",
+      "description": "A pure web music player, in the spirit of Apple Music.",
       "url": "https://github.com/dingyi222666/aura-music",
       "language": "TypeScript",
       "color": "#3178c6",
       "role": "Creator",
-      "techStack": ["TypeScript", "React", "Web Audio API"]
+      "techStack": ["TypeScript", "React", "Web Audio API"],
+      "media": { "type": "image", "orientation": "landscape", "src": "/scenery/scenery-3.jpg" },
+      "private": false
     },
     {
       "name": "MyLuaApp",
-      "description": "MyLuaApp is a light and faster software run in Android Arm Devices to develop Android software with Lua or Java.",
+      "description": "A light, fast Android runtime for developing apps in Lua or Java on ARM devices.",
       "url": "https://github.com/dingyi222666/MyLuaApp",
       "language": "Kotlin",
       "color": "#A97BFF",
       "role": "Creator",
-      "techStack": ["Kotlin", "Lua", "Android"]
+      "techStack": ["Kotlin", "Lua", "Android"],
+      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-4.jpg" },
+      "private": false
     },
     {
       "name": "lua-parser",
-      "description": "A pure Kotlin Lua 5.3/5.4 lexer and parser that can parse source to AST and transform AST back to source.",
+      "description": "A pure Kotlin Lua 5.3/5.4 lexer and parser: source to AST, and back again.",
       "url": "https://github.com/dingyi222666/lua-parser",
       "language": "Kotlin",
       "color": "#A97BFF",
       "role": "Author & Maintainer",
-      "techStack": ["Kotlin Multiplatform", "Lua", "Lexer", "Parser"]
+      "techStack": ["Kotlin Multiplatform", "Lua", "Lexer", "Parser"],
+      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-5.jpg" },
+      "private": false
     },
     {
       "name": "AndroLua-Standalone",
@@ -175,7 +126,56 @@
       "language": "Kotlin",
       "color": "#A97BFF",
       "role": "Author & Maintainer",
-      "techStack": ["Android", "Kotlin", "Lua", "LuaJava"]
+      "techStack": ["Android", "Kotlin", "Lua", "LuaJava"],
+      "media": { "type": "image", "orientation": "landscape", "src": "/scenery/scenery-6.jpg" },
+      "private": false
+    },
+    {
+      "name": "Private Work",
+      "description": "A closed-source project under active development. Happy to talk about it on request.",
+      "url": "",
+      "language": "TypeScript",
+      "color": "#e0638f",
+      "role": "Lead Developer",
+      "techStack": ["TypeScript", "React", "Node.js"],
+      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-7.jpg" },
+      "private": true
+    }
+  ],
+  "games": [
+    {
+      "name": "osu!mania",
+      "note": "Rhythm",
+      "color": "#f7a8c4",
+      "screenshots": [
+        { "src": "/anime/yurucamp-s2.jpg" },
+        { "src": "/anime/yurucamp.jpg" },
+        { "src": "/anime/k-on-s2.jpg" },
+        { "src": "/anime/nonnonbiyori.jpg" },
+        { "src": "/anime/yuyushiki.jpg" },
+        { "src": "/anime/mitsuboshi.jpg" }
+      ]
+    },
+    {
+      "name": "CHUNITHM",
+      "note": "Arcade",
+      "color": "#e0638f",
+      "screenshots": [
+        { "src": "/anime/maidragon-s.jpg" },
+        { "src": "/anime/machikado-s2.jpg" },
+        { "src": "/anime/hidamari-honeycomb.jpg" },
+        { "src": "/anime/yuyushiki.jpg" }
+      ]
+    },
+    {
+      "name": "Left 4 Dead 2",
+      "note": "Co-op",
+      "color": "#8b8b93",
+      "screenshots": [
+        { "src": "/anime/yurucamp.jpg" },
+        { "src": "/anime/nonnonbiyori.jpg" },
+        { "src": "/anime/k-on-s2.jpg" }
+      ]
     }
   ],
   "now": [
@@ -184,17 +184,8 @@
     "Maintaining other open-source projects on GitHub"
   ],
   "skills": [
-    {
-      "name": "Favorites",
-      "skills": ["Lua", "Kotlin"]
-    },
-    {
-      "name": "Languages",
-      "skills": ["Lua", "Kotlin", "Java", "TypeScript", "Python"]
-    },
-    {
-      "name": "Focus",
-      "skills": ["Android", "Node.js / Frontend", "AI Tools & Workflows"]
-    }
+    { "name": "Favorites", "skills": ["Lua", "Kotlin"] },
+    { "name": "Languages", "skills": ["Lua", "Kotlin", "Java", "TypeScript", "Python"] },
+    { "name": "Focus", "skills": ["Android", "Node.js / Frontend", "AI Tools & Workflows"] }
   ]
 }

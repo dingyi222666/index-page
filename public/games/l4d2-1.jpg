@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <rect width="1600" height="900" fill="#141416"/>
+  <g stroke="#fbfafb" stroke-opacity="0.10" stroke-width="1">
+    <line x1="0" y1="297" x2="1600" y2="297"/>
+    <line x1="0" y1="594" x2="1600" y2="594"/>
+    <line x1="528" y1="0" x2="528" y2="900"/>
+    <line x1="1056" y1="0" x2="1056" y2="900"/>
+  </g>
+  <circle cx="800" cy="396" r="180" fill="#5d6b2f" fill-opacity="0.85"/>
+  <rect x="144" y="81" width="352" height="3" fill="#fbfafb" fill-opacity="0.5"/>
+  <rect x="0" y="0" width="1600" height="49" fill="#5d6b2f"/>
+  <g>
+    <rect x="780" y="659" width="757" height="159" fill="#141416"/>
+    <text x="1531" y="779" font-family="'Helvetica Neue',Arial,'Hiragino Sans','PingFang SC',sans-serif" font-size="94" font-weight="600" fill="#fbfafb" text-anchor="end">Left 4 Dead 2</text>
+    <text x="1531" y="640" font-family="'SFMono-Regular','Menlo','Consolas',monospace" font-size="48" letter-spacing="3" fill="#5d6b2f" text-anchor="end">Co-op</text>
+  </g>
+</svg>
