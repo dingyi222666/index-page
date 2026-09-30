@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "yarn run build && wrangler dev",
     "clean": "rm -rf dist",
-    "optimize:games": "node scripts/optimize-games.mjs",
+    "optimize:games": "node scripts/optimize-images.mjs scripts/games-manifest.json",
+    "optimize:projects": "node scripts/optimize-images.mjs scripts/projects-manifest.json",
     "lint": "tsc --noEmit",
     "deploy": "yarn run build && wrangler deploy"
   },

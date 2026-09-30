@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Compress game screenshots with Squoosh (Google Chrome Labs, @squoosh/cli +
+ * Compress image sets (games, projects, ...) with Squoosh (Google Chrome Labs, @squoosh/cli +
  * @squoosh/lib) and write them into public/games as web-friendly JPEGs.
  *
- *   node scripts/optimize-games.mjs [manifest.json]
+ *   node scripts/optimize-images.mjs [manifest.json]
  *
  * The manifest is a JSON file shaped like:
  *   {
- *     "outDir": "public/games",
+ *     "outDir": "public/games",   // or public/projects
  *     "quality": 78,
  *     "maxWidth": 1920,
  *     "jobs": [{

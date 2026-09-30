@@ -1,0 +1,15 @@
+{
+  "_comment": "Source of truth for public/projects/*.jpg. Raw masters live in projects-originals/ because dist/ is build output that `vite build` wipes. Run `yarn optimize:projects` to (re)generate. androlua.jpg was a 1KB broken placeholder and has been dropped.",
+  "outDir": "public/projects",
+  "quality": 80,
+  "maxWidth": 1920,
+  "jobs": [
+    { "input": "projects-originals/chatluna.jpg", "output": "chatluna.jpg" },
+    { "input": "projects-originals/treeview.jpg", "output": "treeview.jpg" },
+    { "input": "projects-originals/aura-music.png", "output": "aura-music.jpg" },
+    { "input": "projects-originals/myluaapp.jpg", "output": "myluaapp.jpg" },
+    { "input": "projects-originals/lua-parser.png", "output": "lua-parser.jpg" },
+    { "input": "projects-originals/private-2.jpg", "output": "private-2.jpg" },
+    { "input": "projects-originals/private-1.jpg", "output": "private-1.jpg" }
+  ]
+}

@@ -64,7 +64,7 @@
       "color": "#3178c6",
       "role": "Core Creator & Maintainer",
       "techStack": ["TypeScript", "Koishi", "LLM", "Vue"],
-      "media": { "type": "image", "orientation": "landscape", "src": "/scenery/scenery-1.jpg" },
+      "media": { "type": "image", "orientation": "portrait", "src": "/projects/chatluna.jpg" },
       "private": false
     },
     {
@@ -75,7 +75,7 @@
       "color": "#A97BFF",
       "role": "Creator",
       "techStack": ["Kotlin", "Android", "RecyclerView"],
-      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-2.jpg" },
+      "media": { "type": "image", "orientation": "portrait", "src": "/projects/treeview.jpg" },
       "private": false
     },
     {
@@ -86,7 +86,7 @@
       "color": "#3178c6",
       "role": "Creator",
       "techStack": ["TypeScript", "React", "Web Audio API"],
-      "media": { "type": "image", "orientation": "landscape", "src": "/scenery/scenery-3.jpg" },
+      "media": { "type": "image", "orientation": "landscape", "src": "/projects/aura-music.jpg" },
       "private": false
     },
     {
@@ -97,7 +97,7 @@
       "color": "#A97BFF",
       "role": "Creator",
       "techStack": ["Kotlin", "Lua", "Android"],
-      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-4.jpg" },
+      "media": { "type": "image", "orientation": "portrait", "src": "/projects/myluaapp.jpg" },
       "private": false
     },
     {
@@ -108,18 +108,7 @@
       "color": "#A97BFF",
       "role": "Author & Maintainer",
       "techStack": ["Kotlin Multiplatform", "Lua", "Lexer", "Parser"],
-      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-5.jpg" },
-      "private": false
-    },
-    {
-      "name": "AndroLua-Standalone",
-      "description": "A standalone, low-coupling Android module extracted from AndroLua+ to make LuaJava easier to use.",
-      "url": "https://github.com/dingyi222666/AndroLua-Standalone",
-      "language": "Kotlin",
-      "color": "#A97BFF",
-      "role": "Author & Maintainer",
-      "techStack": ["Android", "Kotlin", "Lua", "LuaJava"],
-      "media": { "type": "image", "orientation": "landscape", "src": "/scenery/scenery-6.jpg" },
+      "media": { "type": "image", "orientation": "landscape", "src": "/projects/lua-parser.jpg" },
       "private": false
     },
     {
@@ -130,7 +119,18 @@
       "color": "#e0638f",
       "role": "Lead Developer",
       "techStack": ["TypeScript", "React", "Node.js"],
-      "media": { "type": "image", "orientation": "portrait", "src": "/scenery/scenery-7.jpg" },
+      "media": { "type": "image", "orientation": "portrait", "src": "/projects/private-1.jpg" },
+      "private": true
+    },
+    {
+      "name": "Private Work II",
+      "description": "Another closed-source build. Happy to talk about it on request.",
+      "url": "",
+      "language": "TypeScript",
+      "color": "#e0638f",
+      "role": "Lead Developer",
+      "techStack": ["TypeScript", "Node.js"],
+      "media": { "type": "image", "orientation": "portrait", "src": "/projects/private-2.jpg" },
       "private": true
     }
   ],

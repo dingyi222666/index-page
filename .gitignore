@@ -15,3 +15,6 @@ coverage/
 
 # raw masters behind public/games/*.jpg (local only, see scripts/games-manifest.json)
 games-originals/
+
+# raw masters behind public/projects/*.jpg (local only, see scripts/projects-manifest.json)
+projects-originals/

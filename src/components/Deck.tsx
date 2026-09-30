@@ -307,16 +307,20 @@ function Hero() {
 /* ------------------------------------------------------------------ */
 
 /* Holds the headline box (roughly x 10-36%, y 10-24%) clear while still
-   filling the right-hand side. Widths are the final vw width of the card;
-   portrait entries are kept narrow so they never run off the bottom. */
+   filling the right-hand side. Widths are the final vw width of the card.
+   Slots are laid out in data order and each one matches the orientation of
+   the project sitting in it: index 0,1 portrait, 2 landscape, 3 portrait,
+   4 landscape, 5,6 portrait. A landscape card is w vw tall on a 16:9 screen,
+   a portrait one 16/9 * w, so the portrait slots stay narrow to clear the
+   bottom edge. */
 const WALL = [
-  { top: 4, left: 40, w: 23, rot: -6.61, z: 4 },
-  { top: 3, left: 66, w: 12, rot: -4.7, z: 3 },
-  { top: 28, left: 1, w: 26, rot: 8.74, z: 2 },
-  { top: 30, left: 29, w: 12, rot: 4.68, z: 5 },
-  { top: 42, left: 68, w: 12, rot: -5.69, z: 4 },
-  { top: 60, left: 1, w: 24, rot: 5.0, z: 3 },
-  { top: 12, left: 85, w: 11, rot: 10.99, z: 2 },
+  { top: 28, left: 1, w: 16, rot: 8.74, z: 2 },
+  { top: 34, left: 19, w: 15, rot: 4.68, z: 5 },
+  { top: 11, left: 40, w: 30, rot: -6.61, z: 4 },
+  { top: 42, left: 36, w: 15, rot: -5.69, z: 4 },
+  { top: 60, left: 53, w: 30, rot: 5.0, z: 3 },
+  { top: 12, left: 70, w: 15, rot: -4.7, z: 3 },
+  { top: 20, left: 85, w: 14, rot: 10.99, z: 2 },
 ];
 
 function WallCard({
