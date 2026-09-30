@@ -17,6 +17,7 @@ import {
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -24,6 +25,7 @@ import {
   type ReactNode,
 } from "react";
 import siteData from "../data.json";
+import { layoutWall, type WallSlot } from "../lib/wall";
 
 /* ==================================================================
    Language borrowed from the reference site:
@@ -306,47 +308,94 @@ function Hero() {
 /* 01 — Projects: pinned wall, mixed landscape/portrait media          */
 /* ------------------------------------------------------------------ */
 
-/* Holds the headline box (roughly x 10-36%, y 10-24%) clear while still
-   filling the right-hand side. Widths are the final vw width of the card.
-   Slots are laid out in data order and each one matches the orientation of
-   the project sitting in it: index 0,1 portrait, 2 landscape, 3 portrait,
-   4 landscape, 5,6 portrait. A landscape card is w vw tall on a 16:9 screen,
-   a portrait one 16/9 * w, so the portrait slots stay narrow to clear the
-   bottom edge. */
-const WALL = [
-  { top: 28, left: 1, w: 16, rot: 8.74, z: 2 },
-  { top: 34, left: 19, w: 15, rot: 4.68, z: 5 },
-  { top: 11, left: 40, w: 30, rot: -6.61, z: 4 },
-  { top: 42, left: 36, w: 15, rot: -5.69, z: 4 },
-  { top: 60, left: 53, w: 30, rot: 5.0, z: 3 },
-  { top: 12, left: 70, w: 15, rot: -4.7, z: 3 },
-  { top: 20, left: 85, w: 14, rot: 10.99, z: 2 },
-];
+/* Where the cards land. Kept in one block so the composition can be retuned
+   without touching the code that consumes it.
+   Everything is in stage units — see lib/wall.ts: x runs 0–100 across the
+   stage and one unit is one vw, so the stage is 100 / fieldAspect units tall
+   and a card's height follows from its own aspect box. */
+const CONFIG = {
+  seed: 20261001,
+  /** vw kept clear at the top edge (the header) and the bottom edge. */
+  topInset: 1.5,
+  bottomInset: 1.5,
+  /** Regions cards must not enter. The headline sits in the grid at top-24
+      (6rem) and runs to ~5.5vw tall, hence the box below. */
+  desktopKeepOut: [
+    { x0: 9, x1: 37.5, y0: 6.5, y1: 14 },
+    { x0: 0, x1: 100, y0: 0, y1: 2.4 },
+  ],
+  phoneKeepOut: [] as { x0: number; x1: number; y0: number; y1: number }[],
+};
+
+/** Where the cards land, recomputed when the window shape changes. */
+function useWallLayout(count: number) {
+  const [layout, setLayout] = useState<{ slots: WallSlot[]; key: string | null }>({
+    slots: [],
+    key: null,
+  });
+
+  useEffect(() => {
+    const build = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const narrow = w < 768;
+      // Phones get the same cards at double size, so the wall stays legible
+      // instead of turning into confetti.
+      const scale = narrow ? 2 : 1;
+
+      const slots = layoutWall(
+        siteData.projects.map((p) => ({
+          portrait: p.media?.orientation === "portrait",
+        })),
+        {
+          fieldAspect: w / h,
+          topInset: CONFIG.topInset,
+          bottomInset: CONFIG.bottomInset,
+          keepOut: narrow ? CONFIG.phoneKeepOut : CONFIG.desktopKeepOut,
+          scale,
+          seed: CONFIG.seed,
+        },
+      );
+
+      setLayout({ slots, key: `${w}x${h}` });
+    };
+
+    build();
+    const ro = new ResizeObserver(build);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, [count]);
+
+  return layout;
+}
 
 function WallCard({
   project,
   index,
   total,
+  slot,
   progress,
 }: {
   project: any;
   index: number;
   total: number;
+  slot: WallSlot;
   progress: MotionValue<number>;
   key?: string;
 }) {
-  const spot = WALL[index % WALL.length];
   const start = (index / total) * 0.7;
   const end = Math.min(start + 0.2, 0.93);
 
-  const fromLeft = spot.left < 33;
-  const fromRight = spot.left > 60;
-  const fromX = fromLeft ? "-120vw" : fromRight ? "120vw" : "0vw";
-  const fromY = !fromLeft && !fromRight ? (index % 2 ? "85vh" : "-85vh") : "10vh";
+  // Cards drift in from whichever side of the sheet they end up on. Ones in
+  // the middle band come down or up out of frame instead, so no two
+  // neighbours arrive from the same direction.
+  const fromX = slot.fromLeft ? "-120vw" : slot.fromRight ? "120vw" : "0vw";
+  const fromY =
+    !slot.fromLeft && !slot.fromRight ? (index % 2 ? "85vh" : "-85vh") : "10vh";
 
   const x = useTransform(progress, [start, end], [fromX, "0vw"]);
   const y = useTransform(progress, [start, end], [fromY, "0vh"]);
-  const rotate = useTransform(progress, [start, end], [spot.rot * 4, spot.rot]);
+  const rotate = useTransform(progress, [start, end], [slot.rot * 4, slot.rot]);
   const scale = useTransform(progress, [start, end], [0.75, 1]);
   const opacity = useTransform(progress, [start, start + 0.06], [0, 1]);
 
@@ -357,10 +406,10 @@ function WallCard({
   return (
     <motion.div
       style={{
-        top: `${spot.top}%`,
-        left: `${spot.left}%`,
-        width: `${spot.w}vw`,
-        zIndex: spot.z,
+        top: `${slot.top}%`,
+        left: `${slot.left}vw`,
+        width: `${slot.w}vw`,
+        zIndex: slot.z,
         x,
         y,
         rotate,
@@ -413,6 +462,7 @@ function WallCard({
 function ProjectsStage() {
   const projects = siteData.projects;
   const trackRef = useRef<HTMLDivElement>(null);
+  const { slots } = useWallLayout(projects.length);
 
   // The track is 520vh tall, so it has 420vh of travel through the viewport
   // for the wall to use up. Progress is tied to that travel, not to a scroll
@@ -428,7 +478,25 @@ function ProjectsStage() {
   });
 
   return (
-    <section id="projects" className="relative bg-smoke">
+    <section
+      id="projects"
+      /* `isolate` keeps the negative-z sheet layers from falling behind the
+         page background. No `overflow-hidden` here: an overflow ancestor
+         becomes the sticky stage's scrollport and the stage stops pinning. */
+      className="relative isolate"
+    >
+      {/* The sheet. --color-smoke is pulled most of the way back toward the
+          paper token, so the section still sits a shade below the rest of
+          the page but reads as stock rather than as a grey panel. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-30"
+        style={{ backgroundColor: "color-mix(in srgb, var(--color-smoke) 45%, var(--color-paper))" }}
+      />
+      {/* No set-off, no repeating tile: noise generated in the browser. */}
+      <div aria-hidden="true" className="paper-tooth pointer-events-none absolute inset-0 -z-20" />
+      <div aria-hidden="true" className="paper-fibre pointer-events-none absolute inset-0 -z-20" />
+
       <div ref={trackRef} className="relative h-[520vh]">
         <div className="sticky top-0 h-[100svh] overflow-hidden">
           {/* Dotted construction grid: horizontal bands plus column rules. */}
@@ -445,21 +513,30 @@ function ProjectsStage() {
               <h2 className="display mt-3 text-[9vw] text-ink md:text-[5.5vw]">
                 The <span className="text-sakura-deep">work</span>
               </h2>
+              <span
+                aria-hidden="true"
+                className="paper-rule mt-6 hidden w-2/5 md:block"
+              />
             </div>
           </div>
 
-          {/* Slots are chosen so cards clear the headline box but still use
-              the full width, including the whole right-hand column. */}
+          {/* Where each card lands comes from lib/wall.ts: a seeded
+              best-candidate scatter, relaxed until nothing overlaps, chosen
+              as the best of ~32 candidate compositions. Same wall every
+              visit, but a hand-laid pile rather than a grid. */}
           <div className="absolute inset-0">
-            {projects.map((p, i) => (
-              <WallCard
-                key={p.name}
-                project={p}
-                index={i}
-                total={projects.length}
-                progress={smooth}
-              />
-            ))}
+            {projects.map((p, i) =>
+              slots[i] ? (
+                <WallCard
+                  key={p.name}
+                  project={p}
+                  index={i}
+                  total={projects.length}
+                  slot={slots[i]}
+                  progress={smooth}
+                />
+              ) : null,
+            )}
           </div>
 
           {/* Wall progress, riding at the top of the stage */}

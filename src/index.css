@@ -135,6 +135,81 @@
   -webkit-text-stroke: 1px currentColor;
 }
 
+/* ------------------------------------------------------------------ */
+/* Paper                                                               */
+/*                                                                     */
+/* No texture file — everything here is generated in the browser.      */
+/*                                                                     */
+/*  .paper       the sheet itself: two feTurbulence fields and a soft   */
+/*               light falloff, all as background-image layers. The      */
+/*               turbulence is fractal noise, which is what makes it     */
+/*               read as fibre rather than as television static (plain   */
+/*               white noise has no structure at any scale).             */
+/*  .paper-rule  a torn/dry-brushed edge, via a clip-path polygon.       */
+/*                                                                     */
+/* The fibres are mixed with `soft-light`, so they darken where the     */
+/* noise is dark and lighten where it is light and leave flat mid-grey  */
+/* surfaces alone. That is the one blend mode that works unchanged on   */
+/* light paper and on dark paper, so the same sheet survives the theme  */
+/* flip with no second set of rules.                                    */
+/* ------------------------------------------------------------------ */
+
+/* Fine tooth: baseFrequency 0.9 is roughly one noise cell per CSS pixel,
+   so it holds up on a retina panel without being rescaled by the
+   renderer. stitchTiles makes the 200px tile seamless. */
+.paper-tooth {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  mix-blend-mode: soft-light;
+  opacity: 0.55;
+}
+
+/* Coarse fibre: a two-value baseFrequency, 0.008 across and 0.5 down, so
+   the noise is stretched 60:1 horizontally. That is a laid paper's
+   chain lines, and it is the layer that reads as "sheet" rather than
+   "grain". Tiled large (700px) so the pattern never repeats visibly. */
+.paper-fibre {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.008 0.5' numOctaves='3' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23f)'/%3E%3C/svg%3E"),
+    /* The sheet is not evenly lit: a wide diagonal falloff, brighter at the
+       top-left, gives the field a direction and keeps it from reading as
+       flat paint. --color-paper is the token, so this follows the theme. */
+      linear-gradient(
+        145deg,
+        color-mix(in srgb, var(--color-paper) 92%, var(--color-ink)) 0%,
+        var(--color-paper) 42%,
+        color-mix(in srgb, var(--color-paper) 96%, var(--color-ink)) 100%
+      );
+  background-size: 700px 700px, 100% 100%;
+  mix-blend-mode: soft-light;
+  opacity: 0.32;
+}
+
+/* A hairline ruled under the section headline. The polygon is a straight
+   line with sub-pixel chatter — a rule drawn on paper never lands dead
+   level, and the eye reads that wobble as ink rather than as a border. */
+.paper-rule {
+  height: 2px;
+  background-color: var(--color-ink);
+  opacity: 0.5;
+  clip-path: polygon(
+    0% 45%,
+    8% 20%,
+    17% 60%,
+    26% 30%,
+    35% 55%,
+    44% 25%,
+    53% 58%,
+    62% 28%,
+    71% 55%,
+    80% 22%,
+    89% 50%,
+    100% 35%,
+    100% 100%,
+    0% 100%
+  );
+}
+
 @keyframes blink {
   0% {
     opacity: 1;
