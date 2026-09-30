@@ -1,6 +1,8 @@
 {
   "hero": {
     "images": [
+      { "url": "/anime/maidragon-1.jpg", "title": "Miss Kobayashi's Dragon Maid", "subtitle": "Season 2", "accent": "#7fb069" },
+      { "url": "/anime/maidragon-2.jpg", "title": "Miss Kobayashi's Dragon Maid", "subtitle": "Season 2", "accent": "#7fb069" },
       { "url": "/anime/charlotte-1.jpg", "title": "Charlotte", "subtitle": "2015", "accent": "#8b8b93" },
       { "url": "/anime/charlotte-2.jpg", "title": "Charlotte", "subtitle": "2015", "accent": "#8b8b93" },
       { "url": "/anime/seijo-1.jpg", "title": "Saint Cecilia", "subtitle": "& Pastor Lawrence", "accent": "#f7a8c4" },
@@ -11,8 +13,6 @@
       { "url": "/anime/machikado-2.jpg", "title": "Machikado Mazoku", "subtitle": "2-Choume", "accent": "#e0638f" },
       { "url": "/anime/gochiusa-1.jpg", "title": "Is the Order a Rabbit?", "subtitle": "BLOOM", "accent": "#f7a8c4" },
       { "url": "/anime/gochiusa-2.jpg", "title": "Is the Order a Rabbit?", "subtitle": "BLOOM", "accent": "#f7a8c4" },
-      { "url": "/anime/maidragon-1.jpg", "title": "Miss Kobayashi's Dragon Maid", "subtitle": "Season 2", "accent": "#7fb069" },
-      { "url": "/anime/maidragon-2.jpg", "title": "Miss Kobayashi's Dragon Maid", "subtitle": "Season 2", "accent": "#7fb069" },
       { "url": "/anime/wataten-1.jpg", "title": "Wataten!", "subtitle": "An Angel Flew Down to Me", "accent": "#f7a8c4" },
       { "url": "/anime/wataten-2.jpg", "title": "Wataten!", "subtitle": "An Angel Flew Down to Me", "accent": "#f7a8c4" },
       { "url": "/anime/nonnonbiyori-1.jpg", "title": "Non Non Biyori", "subtitle": "Repeat", "accent": "#8fb573" },
