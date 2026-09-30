@@ -1,0 +1,23 @@
+{
+  "_comment": "Source of truth for public/games/*.jpg: every raw master listed once, with the game asset it becomes. Run `yarn optimize:games` to (re)generate all of them. Masters live in games-originals/ because dist/ is build output that `vite build` wipes.",
+  "outDir": "public/games",
+  "quality": 78,
+  "maxWidth": 1920,
+  "jobs": [
+    { "input": "games-originals/1790792330347.png", "output": "osu-1.jpg" },
+    { "input": "games-originals/screenshot443.jpg", "output": "osu-2.jpg" },
+    { "input": "games-originals/1790792540462.png", "output": "osu-3.jpg" },
+    { "input": "games-originals/1790793747974.png", "output": "osu-4.jpg" },
+
+    { "input": "games-originals/1790792826062.jpg", "output": "chunithm-1.jpg",
+      "crop": { "left": 1120, "top": 1024, "width": 1920, "height": 1080 } },
+    { "input": "games-originals/1790792851548.jpg", "output": "chunithm-2.jpg" },
+
+    { "input": "games-originals/1790792200919.png", "output": "l4d2-1.jpg" },
+    { "input": "games-originals/1790792235519.png", "output": "l4d2-2.jpg" },
+    { "input": "games-originals/1790792758258.png", "output": "l4d2-3.jpg" },
+
+    { "input": "games-originals/1790792982849.jpg", "output": "palworld-1.jpg" },
+    { "input": "games-originals/1790793001046.jpg", "output": "palworld-2.jpg" }
+  ]
+}

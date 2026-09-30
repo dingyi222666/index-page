@@ -12,3 +12,6 @@ coverage/
 .wrangler
 .dev.vars*
 !.dev.vars.example
+
+# raw masters behind public/games/*.jpg (local only, see scripts/games-manifest.json)
+games-originals/
