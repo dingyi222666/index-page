@@ -255,7 +255,10 @@ function Hero() {
               // field behind it reads as intentional.
               (e.currentTarget as HTMLImageElement).style.opacity = "0";
             }}
-            className="h-full w-full scale-[1.02] object-cover"
+            // Full-bleed: the still fills the screen, no letterbox bars.
+            // Sources are 1920x1080, so cover only trims a few percent on
+            // off-16:9 windows.
+            className="h-full w-full object-cover"
           />
           <div className="absolute inset-0 bg-[#141416]/50" />
         </motion.div>
@@ -517,8 +520,13 @@ function GameColumn({
             className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]"
           />
           {/* Name plate, bottom-right of every frame */}
-          <span className="absolute bottom-0 right-0 bg-white px-2.5 py-1 font-sans text-xs font-bold tracking-tight text-[#141416]">
+          <span className="absolute bottom-0 right-0 flex items-baseline gap-2 bg-white px-2.5 py-1 font-sans text-xs font-bold tracking-tight text-[#141416]">
             {f.game.name}
+            {f.game.note && (
+              <span className="font-mono text-[10px] font-normal uppercase tracking-[0.15em] text-[#141416]/45">
+                {f.game.note}
+              </span>
+            )}
           </span>
         </div>
       ))}

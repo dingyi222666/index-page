@@ -1,30 +1,22 @@
 {
   "hero": {
     "images": [
-      {
-        "url": "/anime/yurucamp-s2.jpg",
-        "title": "Yuru Camp",
-        "subtitle": "Season 2",
-        "accent": "#f7a8c4"
-      },
-      {
-        "url": "/anime/nonnonbiyori.jpg",
-        "title": "Non Non Biyori",
-        "subtitle": "Repeat",
-        "accent": "#8b8b93"
-      },
-      {
-        "url": "/anime/k-on-s2.jpg",
-        "title": "K-On!!",
-        "subtitle": "Season 2",
-        "accent": "#e0638f"
-      },
-      {
-        "url": "/anime/yuyushiki.jpg",
-        "title": "Yuyushiki",
-        "subtitle": "Everyday",
-        "accent": "#f7a8c4"
-      }
+      { "url": "/anime/charlotte-1.jpg", "title": "Charlotte", "subtitle": "2015", "accent": "#8b8b93" },
+      { "url": "/anime/charlotte-2.jpg", "title": "Charlotte", "subtitle": "2015", "accent": "#8b8b93" },
+      { "url": "/anime/seijo-1.jpg", "title": "Saint Cecilia", "subtitle": "& Pastor Lawrence", "accent": "#f7a8c4" },
+      { "url": "/anime/seijo-2.jpg", "title": "Saint Cecilia", "subtitle": "& Pastor Lawrence", "accent": "#f7a8c4" },
+      { "url": "/anime/sao-1.jpg", "title": "Sword Art Online", "subtitle": "Aincrad", "accent": "#5aa9e6" },
+      { "url": "/anime/sao-2.jpg", "title": "Sword Art Online", "subtitle": "Aincrad", "accent": "#5aa9e6" },
+      { "url": "/anime/machikado-1.jpg", "title": "Machikado Mazoku", "subtitle": "2-Choume", "accent": "#e0638f" },
+      { "url": "/anime/machikado-2.jpg", "title": "Machikado Mazoku", "subtitle": "2-Choume", "accent": "#e0638f" },
+      { "url": "/anime/gochiusa-1.jpg", "title": "Is the Order a Rabbit?", "subtitle": "BLOOM", "accent": "#f7a8c4" },
+      { "url": "/anime/gochiusa-2.jpg", "title": "Is the Order a Rabbit?", "subtitle": "BLOOM", "accent": "#f7a8c4" },
+      { "url": "/anime/maidragon-1.jpg", "title": "Miss Kobayashi's Dragon Maid", "subtitle": "Season 2", "accent": "#7fb069" },
+      { "url": "/anime/maidragon-2.jpg", "title": "Miss Kobayashi's Dragon Maid", "subtitle": "Season 2", "accent": "#7fb069" },
+      { "url": "/anime/wataten-1.jpg", "title": "Wataten!", "subtitle": "An Angel Flew Down to Me", "accent": "#f7a8c4" },
+      { "url": "/anime/wataten-2.jpg", "title": "Wataten!", "subtitle": "An Angel Flew Down to Me", "accent": "#f7a8c4" },
+      { "url": "/anime/nonnonbiyori-1.jpg", "title": "Non Non Biyori", "subtitle": "Repeat", "accent": "#8fb573" },
+      { "url": "/anime/nonnonbiyori-2.jpg", "title": "Non Non Biyori", "subtitle": "Repeat", "accent": "#8fb573" }
     ]
   },
   "profile": {
@@ -144,37 +136,42 @@
   ],
   "games": [
     {
-      "name": "osu!mania",
+      "name": "osu!",
       "note": "Rhythm",
       "color": "#f7a8c4",
       "screenshots": [
-        { "src": "/anime/yurucamp-s2.jpg" },
-        { "src": "/anime/yurucamp.jpg" },
-        { "src": "/anime/k-on-s2.jpg" },
-        { "src": "/anime/nonnonbiyori.jpg" },
-        { "src": "/anime/yuyushiki.jpg" },
-        { "src": "/anime/mitsuboshi.jpg" }
+        { "src": "/games/osu-1.jpg", "orientation": "landscape" },
+        { "src": "/games/osu-2.jpg", "orientation": "landscape" },
+        { "src": "/games/osu-3.jpg", "orientation": "landscape" },
+        { "src": "/games/osu-4.jpg", "orientation": "landscape" }
       ]
     },
     {
       "name": "CHUNITHM",
-      "note": "Arcade",
+      "note": "Arcade Rhythm",
       "color": "#e0638f",
       "screenshots": [
-        { "src": "/anime/maidragon-s.jpg" },
-        { "src": "/anime/machikado-s2.jpg" },
-        { "src": "/anime/hidamari-honeycomb.jpg" },
-        { "src": "/anime/yuyushiki.jpg" }
+        { "src": "/games/chunithm-1.jpg", "orientation": "landscape" },
+        { "src": "/games/chunithm-2.jpg", "orientation": "landscape" }
       ]
     },
     {
       "name": "Left 4 Dead 2",
-      "note": "Co-op",
+      "note": "Co-op Shooter",
       "color": "#8b8b93",
       "screenshots": [
-        { "src": "/anime/yurucamp.jpg" },
-        { "src": "/anime/nonnonbiyori.jpg" },
-        { "src": "/anime/k-on-s2.jpg" }
+        { "src": "/games/l4d2-1.jpg", "orientation": "landscape" },
+        { "src": "/games/l4d2-2.jpg", "orientation": "landscape" },
+        { "src": "/games/l4d2-3.jpg", "orientation": "landscape" }
+      ]
+    },
+    {
+      "name": "Palworld",
+      "note": "Survival Craft",
+      "color": "#5aa9e6",
+      "screenshots": [
+        { "src": "/games/palworld-1.jpg", "orientation": "landscape" },
+        { "src": "/games/palworld-2.jpg", "orientation": "landscape" }
       ]
     }
   ],
