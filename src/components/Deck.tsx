@@ -1,11 +1,26 @@
 import {
+  AnimatePresence,
   motion,
+  useMotionValue,
   useScroll,
   useSpring,
   useTransform,
+  useVelocity,
   type MotionValue,
 } from "motion/react";
-import { Lock, Mail, Moon, NotebookPen, Sun } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Lock,
+  Mail,
+  Maximize2,
+  Menu,
+  Moon,
+  NotebookPen,
+  Sun,
+  X,
+} from "lucide-react";
 import {
   SiGithub,
   SiX,
@@ -17,24 +32,14 @@ import {
 import {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
   type CSSProperties,
-  type ReactNode,
+  type MouseEvent as ReactMouseEvent,
 } from "react";
 import siteData from "../data.json";
 import { layoutWall, type WallSlot } from "../lib/wall";
-
-/* ==================================================================
-   Language borrowed from the reference site:
-   - a 20-column grid; blocks placed by column, not by flexbox
-   - ultrabold uppercase display type, line-height .86
-   - pinned full-viewport stages that stack as you scroll
-   - media scattered at hard-coded percentages with real rotations
-   - flat colour fields, marquee tickers, a preloader curtain
-   ================================================================== */
 
 const iconMap: Record<string, any> = {
   SiGithub,
@@ -46,6 +51,61 @@ const iconMap: Record<string, any> = {
   NotebookPen,
   Mail,
 };
+
+const STAGES = [
+  { id: "index", num: "00", label: "Index" },
+  { id: "projects", num: "01", label: "Projects" },
+  { id: "games", num: "02", label: "Games" },
+  { id: "profile", num: "03", label: "Profile" },
+  { id: "contact", num: "04", label: "Contact" },
+] as const;
+
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_#@*+-=";
+
+/** Monospace text that decodes itself with a brief character scramble on hover. */
+function ScrambleText({
+  text,
+  active,
+  className = "",
+}: {
+  text: string;
+  active: boolean;
+  className?: string;
+}) {
+  const [display, setDisplay] = useState(text);
+
+  useEffect(() => {
+    if (!active) {
+      setDisplay(text);
+      return;
+    }
+
+    let frame = 0;
+    const totalFrames = 12;
+    const interval = window.setInterval(() => {
+      frame++;
+      const progress = frame / totalFrames;
+      const resolvedCount = Math.floor(progress * text.length);
+      const next = text
+        .split("")
+        .map((ch, idx) => {
+          if (ch === " " || idx < resolvedCount) return ch;
+          return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+        })
+        .join("");
+      setDisplay(next);
+
+      if (frame >= totalFrames) {
+        window.clearInterval(interval);
+        setDisplay(text);
+      }
+    }, 22);
+
+    return () => window.clearInterval(interval);
+  }, [active, text]);
+
+  return <span className={className}>{display}</span>;
+}
 
 /** Flat colour field standing in for absent media. */
 function Shot({
@@ -80,10 +140,12 @@ function Shot({
 function Media({
   media,
   color,
+  alt = "",
   className = "",
 }: {
   media: { type: string; orientation: string; src: string; poster?: string };
   color: string;
+  alt?: string;
   className?: string;
 }) {
   const [videoOk, setVideoOk] = useState(media.type === "video" && !!media.src);
@@ -108,7 +170,7 @@ function Media({
   return (
     <Shot
       src={media.poster || media.src}
-      alt=""
+      alt={alt}
       color={color}
       className={className}
     />
@@ -138,25 +200,58 @@ function Words({
   );
 }
 
-/** True while the dark hero is the thing under the fixed header. */
 function useOverHero() {
   const [over, setOver] = useState(true);
 
   useEffect(() => {
-    // The hero is one viewport tall, so watching its bottom edge is enough:
-    // while any of it is in view, the header is sitting on the dark artwork.
     const hero = document.getElementById("index");
     if (!hero || typeof IntersectionObserver === "undefined") return;
 
     const io = new IntersectionObserver(
       ([entry]) => setOver(entry.isIntersecting),
-      { threshold: 0 },
+      {
+        rootMargin: "-24px 0px -92% 0px",
+        threshold: 0,
+      },
     );
     io.observe(hero);
     return () => io.disconnect();
   }, []);
 
   return over;
+}
+
+function useActiveStage() {
+  const [activeId, setActiveId] = useState<string>("index");
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+
+    const elements = STAGES.map((s) => document.getElementById(s.id)).filter(
+      (el): el is HTMLElement => Boolean(el),
+    );
+    if (!elements.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) {
+          setActiveId(visible[0].target.id);
+        }
+      },
+      {
+        rootMargin: "-35% 0px -45% 0px",
+        threshold: [0, 0.25, 0.5],
+      },
+    );
+
+    elements.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
+  return activeId;
 }
 
 function useTheme() {
@@ -182,15 +277,17 @@ function Ticker({
   className = "",
   itemClassName = "",
   speed = 26,
+  activeItem,
+  onSelectItem,
 }: {
   items: string[];
   reverse?: boolean;
   className?: string;
   itemClassName?: string;
   speed?: number;
+  activeItem?: string | null;
+  onSelectItem?: (item: string) => void;
 }) {
-  // Repeated 8x, and the keyframe travels half the track, so the loop is
-  // seamless no matter how wide the viewport is.
   const track = Array.from({ length: 8 }, () => items).flat();
 
   return (
@@ -199,135 +296,309 @@ function Ticker({
         className={`marquee-track ${reverse ? "marquee-track--reverse" : ""}`}
         style={{ "--marquee-duration": `${speed}s` } as CSSProperties}
       >
-        {track.map((t, i) => (
-          <span key={i} className={`flex shrink-0 items-center gap-4 pr-4 ${itemClassName}`}>
-            <span className={i % 2 === 1 ? "text-hollow" : ""}>{t}</span>
-            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sakura-deep" />
-          </span>
-        ))}
+        {track.map((t, i) => {
+          const isSelected = activeItem === t;
+          const isDimmed = activeItem && activeItem !== t;
+          const InteractiveTag = onSelectItem ? "button" : "span";
+          return (
+            <InteractiveTag
+              key={i}
+              {...(onSelectItem
+                ? {
+                    type: "button" as const,
+                    onClick: () => onSelectItem(t),
+                  }
+                : {})}
+              className={`flex shrink-0 items-center gap-4 pr-4 transition-opacity duration-300 ${
+                onSelectItem ? "cursor-pointer hover:text-sakura-deep" : ""
+              } ${isDimmed ? "opacity-35" : "opacity-100"} ${itemClassName}`}
+            >
+              <span
+                className={
+                  isSelected
+                    ? "text-sakura-deep"
+                    : i % 2 === 1
+                      ? "text-hollow"
+                      : ""
+                }
+              >
+                {t}
+              </span>
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-sakura-deep" />
+            </InteractiveTag>
+          );
+        })}
       </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Curtain — flashes the accent colour, then slides away               */
+/* Curtain — live asset/font counter, then wipes up and unmounts       */
 /* ------------------------------------------------------------------ */
 
-function Preloader() {
+function Preloader({ onReady }: { onReady: () => void }) {
+  const [count, setCount] = useState(0);
+  const [lifting, setLifting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    let raf = 0;
+    let cancelled = false;
+    const start = performance.now();
+    const minDuration = 780;
+    let assetsReady = false;
+
+    const firstHero = siteData.hero.images[0]?.url;
+    const imgPromise = new Promise<void>((resolve) => {
+      if (!firstHero) {
+        resolve();
+        return;
+      }
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = firstHero;
+    });
+
+    const fontPromise =
+      typeof document !== "undefined" && "fonts" in document
+        ? document.fonts.ready.then(() => undefined).catch(() => undefined)
+        : Promise.resolve();
+
+    const timeoutPromise = new Promise<void>((resolve) =>
+      window.setTimeout(resolve, 1200),
+    );
+
+    Promise.race([Promise.all([imgPromise, fontPromise]), timeoutPromise]).then(() => {
+      assetsReady = true;
+    });
+
+    const tick = (now: number) => {
+      if (cancelled) return;
+      const elapsed = now - start;
+      const timeProgress = Math.min(1, elapsed / minDuration);
+      const eased = 1 - Math.pow(1 - timeProgress, 3);
+      const cap = assetsReady ? 100 : 92;
+      const nextCount = Math.min(cap, Math.round(eased * 100));
+      setCount(nextCount);
+
+      if (nextCount < 100) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setLifting(true);
+        onReady();
+        window.setTimeout(() => {
+          if (!cancelled) setDone(true);
+        }, 820);
+      }
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [onReady]);
+
+  if (done) return null;
+
   return (
-    <div className="preloader fixed inset-0 z-[100] flex items-end bg-sakura p-6 md:p-12">
-      <p className="display text-[14vw] leading-[0.8] text-[#141416] md:text-[9vw]">
-        dingyi222666
-      </p>
-    </div>
+    <motion.div
+      initial={{ y: "0%" }}
+      animate={{ y: lifting ? "-100%" : "0%" }}
+      transition={{ duration: 0.78, ease: [0.76, 0, 0.24, 1] }}
+      className="pointer-events-none fixed inset-0 z-[100] flex flex-col justify-end bg-sakura p-6 text-[#141416] md:p-12"
+    >
+      <div className="mb-6 h-[2px] w-full overflow-hidden bg-[#141416]/15">
+        <div
+          className="h-full bg-[#141416] transition-[width] duration-75 ease-out"
+          style={{ width: `${count}%` }}
+        />
+      </div>
+
+      <div className="flex items-end justify-between gap-4">
+        <p className="display text-[13vw] leading-[0.8] text-[#141416] md:text-[8.5vw]">
+          dingyi222666
+        </p>
+        <p className="display text-[9vw] leading-[0.8] text-[#141416] md:text-[5vw]">
+          {String(count).padStart(2, "0")}%
+        </p>
+      </div>
+    </motion.div>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* 00 — Title                                                          */
+/* 00 — Title: Ken Burns + pointer parallax + anime frame HUD          */
 /* ------------------------------------------------------------------ */
 
-function Hero() {
+function Hero({ ready }: { ready: boolean }) {
   const [i, setI] = useState(0);
   const images = siteData.hero.images;
+  const sectionRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
-    const t = setInterval(() => setI((v) => (v + 1) % images.length), 7000);
-    return () => clearInterval(t);
+    const t = window.setInterval(() => setI((v) => (v + 1) % images.length), 7000);
+    return () => window.clearInterval(t);
   }, [images.length]);
 
   const slide = images[i];
+  const accentColor = slide?.accent || "var(--color-sakura)";
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const parallaxX = useSpring(mouseX, { stiffness: 90, damping: 24 });
+  const parallaxY = useSpring(mouseY, { stiffness: 90, damping: 24 });
+
+  const handleMouseMove = useCallback(
+    (e: ReactMouseEvent<HTMLElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const nx = (e.clientX - rect.left) / rect.width - 0.5;
+      const ny = (e.clientY - rect.top) / rect.height - 0.5;
+      mouseX.set(nx * -22);
+      mouseY.set(ny * -22);
+    },
+    [mouseX, mouseY],
+  );
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const stageScale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
+  const stageOpacity = useTransform(scrollYProgress, [0, 1], [1, 0.45]);
+
+  const wordBaseDelay = ready ? 0.05 : 0.95;
 
   return (
-    <section className="relative h-[100svh] w-full overflow-hidden bg-ink">
-      {/* Slides. A curtain wipe, not a zoom — the frame is simply replaced. */}
-      {images.map((img, k) => (
-        <motion.div
-          key={img.url}
-          aria-hidden={k !== i}
-          animate={{ clipPath: k === i ? "inset(0% 0% 0% 0%)" : "inset(0% 0% 100% 0%)" }}
-          transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
-          className="absolute inset-0"
-        >
-          <img
-            src={img.url}
-            alt={img.title}
-            onError={(e) => {
-              // No fallback art any more: drop the frame so the flat colour
-              // field behind it reads as intentional.
-              (e.currentTarget as HTMLImageElement).style.opacity = "0";
-            }}
-            // Full-bleed: the still fills the screen, no letterbox bars.
-            // Sources are 1920x1080, so cover only trims a few percent on
-            // off-16:9 windows.
-            className="h-full w-full object-cover"
-          />
-          <div className="absolute inset-0 bg-[#141416]/50" />
-        </motion.div>
-      ))}
+    <section
+      id="index"
+      ref={sectionRef}
+      onMouseMove={handleMouseMove}
+      className="relative h-[100svh] w-full overflow-hidden bg-[#141416]"
+    >
+      <motion.div
+        style={{ scale: stageScale, opacity: stageOpacity }}
+        className="relative h-full w-full origin-bottom"
+      >
+        {images.map((img, k) => {
+          const isCurrent = k === i;
+          return (
+            <motion.div
+              key={img.url}
+              aria-hidden={!isCurrent}
+              animate={{
+                clipPath: isCurrent ? "inset(0% 0% 0% 0%)" : "inset(0% 0% 100% 0%)",
+              }}
+              transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+              className="absolute inset-0"
+            >
+              <motion.img
+                src={img.url}
+                alt={img.title}
+                style={isCurrent ? { x: parallaxX, y: parallaxY } : undefined}
+                animate={{ scale: isCurrent ? 1.04 : 1.12 }}
+                transition={{ duration: 6.8, ease: "easeOut" }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.opacity = "0";
+                }}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#141416]/85 via-[#141416]/40 to-[#141416]/55" />
+            </motion.div>
+          );
+        })}
 
-      <div className="grid-20 absolute inset-0 z-10 content-end pb-24">
-        <div className="grid-inner">
-          <h1 className="display text-white" key={i}>
-            <span className="block text-[17vw] md:text-[11vw]">
-              <Words text="Still" />
-            </span>
-            <span className="block text-[17vw] md:text-[11vw]">
-              <Words text="Render" delay={0.08} />
-              <span className="word-mask">
+        {/* Hero Frame HUD Pill */}
+        {slide && (
+          <div className="grid-20 pointer-events-none absolute inset-x-0 top-24 z-10 md:top-28">
+            <div className="grid-inner flex justify-end">
+              <div
+                key={`${slide.url}-${i}`}
+                className="inline-flex items-center gap-3 border border-white/15 bg-[#141416]/65 px-3.5 py-2 backdrop-blur-md"
+              >
                 <span
-                  className="word-up text-sakura"
-                  style={{ animationDelay: "0.16s" }}
-                >
-                  Frame
+                  className="h-2 w-2 rounded-full transition-colors duration-500"
+                  style={{ backgroundColor: accentColor }}
+                />
+                <span className="font-mono text-[11px] tracking-[0.16em] text-white uppercase">
+                  {slide.title}
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.14em] text-white/50 uppercase">
+                  {slide.subtitle}
+                </span>
+                <span className="border-l border-white/15 pl-2.5 font-mono text-[10px] tracking-[0.18em] text-white/75">
+                  {String(i + 1).padStart(2, "0")}/{String(images.length).padStart(2, "0")}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="grid-20 absolute inset-0 z-10 content-end pb-16 md:pb-24">
+          <div className="grid-inner">
+            <h1 className="display text-white" key={`${i}-${ready ? "ready" : "init"}`}>
+              <span className="block text-[17vw] md:text-[11vw]">
+                <Words text="Still" delay={wordBaseDelay} />
+              </span>
+              <span className="block text-[17vw] md:text-[11vw]">
+                <Words text="Render" delay={wordBaseDelay + 0.08} />
+                <span className="word-mask">
+                  <span
+                    className="word-up transition-colors duration-500"
+                    style={{
+                      animationDelay: `${wordBaseDelay + 0.16}s`,
+                      color: accentColor,
+                    }}
+                  >
+                    Frame
+                  </span>
                 </span>
               </span>
-            </span>
-          </h1>
+            </h1>
 
-          {/* Slide switch — click a tick to jump to that frame */}
-          <div className="mt-8 flex items-center gap-2">
-            {images.map((img, k) => (
-              <button
-                key={img.url}
-                onClick={() => setI(k)}
-                aria-label={`Show ${img.title}`}
-                className={`h-[3px] transition-all duration-500 ${
-                  k === i ? "w-10 bg-sakura" : "w-4 bg-sakura/40 hover:bg-sakura/75"
-                }`}
-              />
-            ))}
+            <div className="mt-8 flex items-center gap-2">
+              {images.map((img, k) => {
+                const active = k === i;
+                return (
+                  <button
+                    key={img.url}
+                    type="button"
+                    onClick={() => setI(k)}
+                    aria-label={`Show ${img.title} (${img.subtitle})`}
+                    className={`h-[3px] cursor-pointer transition-all duration-500 ${
+                      active ? "w-10" : "w-4 bg-white/30 hover:bg-white/65"
+                    }`}
+                    style={active ? { backgroundColor: accentColor } : undefined}
+                  />
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* 01 — Projects: pinned wall, mixed landscape/portrait media          */
+/* 01 — Projects: clean stage, 3D magnetic cards & Full Image Modal    */
 /* ------------------------------------------------------------------ */
 
-/* Where the cards land. Kept in one block so the composition can be retuned
-   without touching the code that consumes it.
-   Everything is in stage units — see lib/wall.ts: x runs 0–100 across the
-   stage and one unit is one vw, so the stage is 100 / fieldAspect units tall
-   and a card's height follows from its own aspect box. */
 const CONFIG = {
   seed: 20261001,
-  /** vw kept clear at the top edge (the header) and the bottom edge. */
-  topInset: 1.5,
-  bottomInset: 1.5,
-  /** Regions cards must not enter. The headline sits in the grid at top-24
-      (6rem) and runs to ~5.5vw tall, hence the box below. */
+  topInset: 2.2,
+  bottomInset: 4.0,
   desktopKeepOut: [
-    { x0: 9, x1: 37.5, y0: 6.5, y1: 14 },
-    { x0: 0, x1: 100, y0: 0, y1: 2.4 },
+    { x0: 4, x1: 40, y0: 4.5, y1: 15.0 },
+    { x0: 0, x1: 100, y0: 0, y1: 3.0 },
   ],
-  phoneKeepOut: [] as { x0: number; x1: number; y0: number; y1: number }[],
+  phoneKeepOut: [
+    { x0: 0, x1: 75, y0: 6, y1: 20 },
+  ] as { x0: number; x1: number; y0: number; y1: number }[],
 };
 
-/** Where the cards land, recomputed when the window shape changes. */
 function useWallLayout(count: number) {
   const [layout, setLayout] = useState<{ slots: WallSlot[]; key: string | null }>({
     slots: [],
@@ -335,13 +606,22 @@ function useWallLayout(count: number) {
   });
 
   useEffect(() => {
+    let lastW = 0;
+    let lastH = 0;
+    let timer: number | undefined;
+
     const build = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
       const narrow = w < 768;
-      // Phones get the same cards at double size, so the wall stays legible
-      // instead of turning into confetti.
-      const scale = narrow ? 2 : 1;
+
+      if (narrow && Math.abs(w - lastW) < 2 && lastW > 0 && Math.abs(h - lastH) < 120) {
+        return;
+      }
+      lastW = w;
+      lastH = h;
+
+      const scale = narrow ? 1.85 : 1;
 
       const slots = layoutWall(
         siteData.projects.map((p) => ({
@@ -361,9 +641,17 @@ function useWallLayout(count: number) {
     };
 
     build();
-    const ro = new ResizeObserver(build);
-    ro.observe(document.documentElement);
-    return () => ro.disconnect();
+
+    const onResize = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = window.setTimeout(build, 120);
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
   }, [count]);
 
   return layout;
@@ -375,33 +663,58 @@ function WallCard({
   total,
   slot,
   progress,
+  isFocused,
+  isDimmed,
+  onFocusChange,
+  onInspect,
 }: {
   project: any;
   index: number;
   total: number;
   slot: WallSlot;
   progress: MotionValue<number>;
+  isFocused: boolean;
+  isDimmed: boolean;
+  onFocusChange: (index: number | null) => void;
+  onInspect: (index: number) => void;
   key?: string;
 }) {
-  const start = (index / total) * 0.7;
-  const end = Math.min(start + 0.2, 0.93);
+  const start = (index / total) * 0.58;
+  const end = Math.min(start + 0.28, 0.92);
 
-  // Cards drift in from whichever side of the sheet they end up on. Ones in
-  // the middle band come down or up out of frame instead, so no two
-  // neighbours arrive from the same direction.
-  const fromX = slot.fromLeft ? "-120vw" : slot.fromRight ? "120vw" : "0vw";
+  const fromX = slot.fromLeft ? "-65vw" : slot.fromRight ? "65vw" : "0vw";
   const fromY =
-    !slot.fromLeft && !slot.fromRight ? (index % 2 ? "85vh" : "-85vh") : "10vh";
+    !slot.fromLeft && !slot.fromRight ? (index % 2 ? "65vh" : "-65vh") : "12vh";
 
   const x = useTransform(progress, [start, end], [fromX, "0vw"]);
   const y = useTransform(progress, [start, end], [fromY, "0vh"]);
-  const rotate = useTransform(progress, [start, end], [slot.rot * 4, slot.rot]);
-  const scale = useTransform(progress, [start, end], [0.75, 1]);
-  const opacity = useTransform(progress, [start, start + 0.06], [0, 1]);
+  const baseRotate = useTransform(progress, [start, end], [slot.rot * 2.8, slot.rot]);
+  const baseScale = useTransform(progress, [start, end], [0.82, 1]);
+  const opacity = useTransform(progress, [start, start + 0.08], [0, 1]);
 
-  const Wrapper: any = project.private ? "div" : "a";
+  // 3D magnetic tilt
+  const rawTiltX = useMotionValue(0);
+  const rawTiltY = useMotionValue(0);
+  const rotateX = useSpring(rawTiltX, { stiffness: 220, damping: 22 });
+  const rotateY = useSpring(rawTiltY, { stiffness: 220, damping: 22 });
+
+  const handlePointerMove = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width - 0.5;
+    const py = (e.clientY - rect.top) / rect.height - 0.5;
+    rawTiltX.set(-py * 12);
+    rawTiltY.set(px * 12);
+  };
+
+  const handlePointerLeave = () => {
+    rawTiltX.set(0);
+    rawTiltY.set(0);
+    onFocusChange(null);
+  };
+
   const orientation = project.media?.orientation ?? "landscape";
   const portrait = orientation === "portrait";
+  const techStack: string[] = project.techStack ?? [];
 
   return (
     <motion.div
@@ -409,29 +722,46 @@ function WallCard({
         top: `${slot.top}%`,
         left: `${slot.left}vw`,
         width: `${slot.w}vw`,
-        zIndex: slot.z,
+        zIndex: isFocused ? 60 : slot.z,
         x,
         y,
-        rotate,
-        scale,
+        rotate: isFocused ? 0 : baseRotate,
+        scale: baseScale,
         opacity,
+        rotateX,
+        rotateY,
+        transformPerspective: 1100,
         backgroundColor: project.color ?? "#141416",
       }}
-      className={`group absolute ${
+      onMouseEnter={() => onFocusChange(index)}
+      onMouseMove={handlePointerMove}
+      onMouseLeave={handlePointerLeave}
+      onClick={() => onInspect(index)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onInspect(index);
+        }
+      }}
+      aria-label={`Inspect ${project.name}`}
+      className={`group absolute cursor-pointer transition-[filter,opacity,box-shadow] duration-400 ${
         portrait ? "aspect-[9/16]" : "aspect-[16/9]"
-      } shadow-[0_40px_80px_-28px_rgba(20,20,22,0.75)]`}
+      } ${
+        isFocused
+          ? "shadow-[0_48px_95px_-20px_rgba(20,20,22,0.88)] ring-2 ring-sakura"
+          : "shadow-[0_36px_72px_-26px_rgba(20,20,22,0.68)]"
+      } ${isDimmed ? "opacity-35 blur-[1.5px] grayscale-[25%]" : ""}`}
     >
-      <Wrapper
-        {...(project.private
-          ? {}
-          : { href: project.url, target: "_blank", rel: "noopener noreferrer" })}
-        aria-label={project.private ? project.name : `${project.name} on GitHub`}
-        className="relative block h-full w-full overflow-hidden"
-      >
+      <div className="relative block h-full w-full overflow-hidden">
         <Media
           media={project.media}
           color={project.color}
-          className="absolute inset-0 h-full w-full"
+          alt={project.name}
+          className={`absolute inset-0 h-full w-full transition-transform duration-500 ease-out ${
+            isFocused ? "scale-[1.04]" : "group-hover:scale-[1.04]"
+          }`}
         />
 
         {project.private && (
@@ -441,20 +771,41 @@ function WallCard({
           </div>
         )}
 
-        {/* Hover: the details wipe up from the bottom edge */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 origin-bottom translate-y-full bg-[#141416]/92 p-4 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-y-0 md:p-5">
-          <div className="mb-2 flex items-start justify-between gap-3">
+        {/* Hover drawer with techStack capsules */}
+        <div
+          className={`pointer-events-none absolute inset-x-0 bottom-0 origin-bottom bg-[#141416]/94 p-4 transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] md:p-5 ${
+            isFocused ? "translate-y-0" : "translate-y-full group-hover:translate-y-0"
+          }`}
+        >
+          <div className="mb-1.5 flex items-start justify-between gap-3">
             <h3 className="display text-lg text-white md:text-xl">{project.name}</h3>
             <span className="mt-0.5 shrink-0 font-mono text-[10px] tracking-[0.15em] text-white/50">
               {project.language.toUpperCase()}
             </span>
           </div>
-          <p className="mb-2 font-mono text-[10px] tracking-[0.1em] text-sakura">{project.role}</p>
-          <p className="line-clamp-2 text-xs leading-relaxed text-white/70">
+
+          <p className="mb-2 font-mono text-[10px] tracking-[0.1em] text-sakura">
+            {project.role}
+          </p>
+
+          <p className="line-clamp-2 text-xs leading-relaxed text-white/75">
             {project.description}
           </p>
+
+          {techStack.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1">
+              {techStack.map((tech) => (
+                <span
+                  key={tech}
+                  className="border border-white/15 bg-white/5 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.1em] text-white/80 uppercase"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
-      </Wrapper>
+      </div>
     </motion.div>
   );
 }
@@ -463,13 +814,27 @@ function ProjectsStage() {
   const projects = siteData.projects;
   const trackRef = useRef<HTMLDivElement>(null);
   const { slots } = useWallLayout(projects.length);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const [inspectedIndex, setInspectedIndex] = useState<number | null>(null);
 
-  // The track is 520vh tall, so it has 420vh of travel through the viewport
-  // for the wall to use up. Progress is tied to that travel, not to a scroll
-  // container of our own.
+  // Magnetic cursor pill coordinates
+  const cursorX = useMotionValue(-200);
+  const cursorY = useMotionValue(-200);
+  const smoothCursorX = useSpring(cursorX, { stiffness: 380, damping: 28 });
+  const smoothCursorY = useSpring(cursorY, { stiffness: 380, damping: 28 });
+
+  const handleStageMouseMove = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      cursorX.set(e.clientX - rect.left);
+      cursorY.set(e.clientY - rect.top);
+    },
+    [cursorX, cursorY],
+  );
+
   const { scrollYProgress } = useScroll({
     target: trackRef,
-    offset: ["start start", "end end"],
+    offset: ["start 0.35", "end end"],
   });
   const smooth = useSpring(scrollYProgress, {
     stiffness: 110,
@@ -477,53 +842,54 @@ function ProjectsStage() {
     restDelta: 0.0005,
   });
 
+  // Keyboard navigation for the floating full-image inspector
+  useEffect(() => {
+    if (inspectedIndex === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInspectedIndex(null);
+      if (e.key === "ArrowRight") {
+        setInspectedIndex((prev) => (prev === null ? 0 : (prev + 1) % projects.length));
+      }
+      if (e.key === "ArrowLeft") {
+        setInspectedIndex((prev) =>
+          prev === null ? 0 : (prev - 1 + projects.length) % projects.length,
+        );
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [inspectedIndex, projects.length]);
+
+  const focusedProject = focusedIndex !== null ? projects[focusedIndex] : null;
+  const inspectedProject = inspectedIndex !== null ? projects[inspectedIndex] : null;
+
   return (
     <section
       id="projects"
-      /* `isolate` keeps the negative-z sheet layers from falling behind the
-         page background. No `overflow-hidden` here: an overflow ancestor
-         becomes the sticky stage's scrollport and the stage stops pinning. */
-      className="relative isolate"
+      className="relative isolate border-b border-line bg-paper"
     >
-      {/* The sheet. --color-smoke is pulled most of the way back toward the
-          paper token, so the section still sits a shade below the rest of
-          the page but reads as stock rather than as a grey panel. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-30"
-        style={{ backgroundColor: "color-mix(in srgb, var(--color-smoke) 45%, var(--color-paper))" }}
-      />
-      {/* No set-off, no repeating tile: noise generated in the browser. */}
-      <div aria-hidden="true" className="paper-tooth pointer-events-none absolute inset-0 -z-20" />
-      <div aria-hidden="true" className="paper-fibre pointer-events-none absolute inset-0 -z-20" />
-
-      <div ref={trackRef} className="relative h-[520vh]">
-        <div className="sticky top-0 h-[100svh] overflow-hidden">
-          {/* Dotted construction grid: horizontal bands plus column rules. */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-0 hidden md:block"
-          >
-            {/* Square dashed cells, from .square-grid */}
-            <div className="square-grid h-full w-full text-ink opacity-25" />
-          </div>
-
-          <div className="grid-20 absolute left-0 right-0 top-24 z-30">
+      <div ref={trackRef} className="relative h-[400vh]">
+        <div
+          onMouseMove={handleStageMouseMove}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setFocusedIndex(null);
+          }}
+          className="sticky top-0 h-[100svh] overflow-hidden"
+        >
+          {/* Headline */}
+          <div className="grid-20 pointer-events-none absolute left-0 right-0 top-24 z-30">
             <div className="grid-inner">
               <h2 className="display mt-3 text-[9vw] text-ink md:text-[5.5vw]">
                 The <span className="text-sakura-deep">work</span>
               </h2>
               <span
                 aria-hidden="true"
-                className="paper-rule mt-6 hidden w-2/5 md:block"
+                className="paper-rule draw-in mt-6 hidden w-2/5 md:block"
               />
             </div>
           </div>
 
-          {/* Where each card lands comes from lib/wall.ts: a seeded
-              best-candidate scatter, relaxed until nothing overlaps, chosen
-              as the best of ~32 candidate compositions. Same wall every
-              visit, but a hand-laid pile rather than a grid. */}
+          {/* Scattered project wall */}
           <div className="absolute inset-0">
             {projects.map((p, i) =>
               slots[i] ? (
@@ -534,14 +900,64 @@ function ProjectsStage() {
                   total={projects.length}
                   slot={slots[i]}
                   progress={smooth}
+                  isFocused={focusedIndex === i}
+                  isDimmed={focusedIndex !== null && focusedIndex !== i}
+                  onFocusChange={setFocusedIndex}
+                  onInspect={setInspectedIndex}
                 />
               ) : null,
             )}
           </div>
 
+          {/* Bottom interactive project capsules dock: hover to spotlight, click to inspect full image */}
+          <div className="grid-20 pointer-events-none absolute inset-x-0 bottom-6 z-30">
+            <div className="grid-inner flex flex-wrap items-center justify-between gap-3">
+              <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
+                {projects.map((p, idx) => {
+                  const active = focusedIndex === idx || inspectedIndex === idx;
+                  return (
+                    <button
+                      key={p.name}
+                      type="button"
+                      onMouseEnter={() => setFocusedIndex(idx)}
+                      onMouseLeave={() => setFocusedIndex(null)}
+                      onClick={() => setInspectedIndex(idx)}
+                      className={`flex cursor-pointer items-center gap-2 border px-3 py-1.5 font-mono text-[10px] tracking-[0.15em] backdrop-blur-md transition-all uppercase ${
+                        active
+                          ? "border-sakura-deep bg-sakura-deep text-white shadow-sm"
+                          : "border-line bg-paper/85 text-ink/80 hover:border-sakura-deep hover:text-ink"
+                      }`}
+                    >
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ backgroundColor: active ? "#ffffff" : p.color }}
+                      />
+                      <span>{p.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Contextual magnetic cursor pill */}
+          <motion.div
+            aria-hidden="true"
+            style={{ x: smoothCursorX, y: smoothCursorY }}
+            animate={{
+              opacity: focusedProject ? 1 : 0,
+              scale: focusedProject ? 1 : 0.75,
+            }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="pointer-events-none absolute left-4 top-4 z-[80] hidden items-center gap-1.5 bg-sakura px-3 py-1.5 font-mono text-[10px] font-medium tracking-[0.18em] text-[#141416] shadow-lg md:flex"
+          >
+            <Maximize2 className="h-3 w-3" />
+            <span>INSPECT FULL IMAGE</span>
+          </motion.div>
+
           {/* Wall progress, riding at the top of the stage */}
           <div className="absolute left-0 right-0 top-0 z-30">
-            <span className="relative block h-[3px] w-full overflow-hidden bg-white/15">
+            <span className="relative block h-[3px] w-full overflow-hidden bg-ink/10">
               <motion.span
                 style={{ scaleX: smooth }}
                 className="absolute inset-0 origin-left bg-sakura"
@@ -550,16 +966,151 @@ function ProjectsStage() {
           </div>
         </div>
       </div>
+
+      {/* Floating Full-Image & Project Dossier Modal */}
+      <AnimatePresence>
+        {inspectedProject && inspectedIndex !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setInspectedIndex(null)}
+            className="fixed inset-0 z-[95] flex items-center justify-center bg-[#141416]/90 p-4 backdrop-blur-md md:p-10"
+          >
+            <motion.div
+              key={inspectedProject.name}
+              initial={{ scale: 0.93, y: 20, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.95, y: 12, opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="grid max-h-[90svh] w-full max-w-6xl overflow-hidden border border-white/15 bg-[#141416] text-white shadow-2xl md:grid-cols-[1.35fr_1fr]"
+            >
+              {/* Left: Uncropped Full-Resolution Image Preview */}
+              <div className="relative flex max-h-[52svh] items-center justify-center overflow-hidden bg-[#0b0b0d] p-4 md:max-h-[86svh] md:p-8">
+                <img
+                  src={(inspectedProject.media as any).poster || inspectedProject.media.src}
+                  alt={inspectedProject.name}
+                  className="max-h-[46svh] w-auto max-w-full object-contain shadow-2xl md:max-h-[76svh]"
+                />
+                <span className="absolute left-4 top-4 border border-white/15 bg-[#141416]/80 px-2.5 py-1 font-mono text-[10px] tracking-[0.18em] text-white/75 backdrop-blur-xs">
+                  {String(inspectedIndex + 1).padStart(2, "0")} /{" "}
+                  {String(projects.length).padStart(2, "0")}
+                </span>
+              </div>
+
+              {/* Right: Project Details, Tech Stack & Actions */}
+              <div className="flex flex-col justify-between border-t border-white/10 p-6 md:border-l md:border-t-0 md:p-8">
+                <div>
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="inline-flex items-center gap-2 border border-white/15 bg-white/5 px-2.5 py-1 font-mono text-[10px] tracking-[0.18em] text-white/80 uppercase">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: inspectedProject.color }}
+                      />
+                      {inspectedProject.language}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => setInspectedIndex(null)}
+                      className="flex cursor-pointer items-center gap-1.5 border border-white/20 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-white/80 transition-colors hover:border-sakura hover:text-sakura uppercase"
+                    >
+                      <span>CLOSE [ESC]</span>
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+
+                  <h3 className="display mt-6 text-3xl text-white md:text-5xl">
+                    {inspectedProject.name}
+                  </h3>
+
+                  <p className="mt-2 font-mono text-xs tracking-[0.14em] text-sakura uppercase">
+                    {inspectedProject.role}
+                  </p>
+
+                  <p className="mt-5 text-sm leading-relaxed text-white/80 md:text-base">
+                    {inspectedProject.description}
+                  </p>
+
+                  {inspectedProject.techStack?.length > 0 && (
+                    <div className="mt-6">
+                      <p className="font-mono text-[10px] tracking-[0.22em] text-white/45 uppercase">
+                        TECH STACK
+                      </p>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {inspectedProject.techStack.map((tech: string) => (
+                          <span
+                            key={tech}
+                            className="border border-white/15 bg-white/5 px-2.5 py-1 font-mono text-[11px] tracking-[0.12em] text-white/90"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    {inspectedProject.private ? (
+                      <div className="inline-flex items-center gap-2 bg-sakura-deep px-4 py-2.5 font-mono text-xs tracking-[0.18em] text-white uppercase">
+                        <Lock className="h-3.5 w-3.5" />
+                        <span>PRIVATE REPOSITORY</span>
+                      </div>
+                    ) : (
+                      <a
+                        href={inspectedProject.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 bg-sakura px-5 py-2.5 font-mono text-xs font-medium tracking-[0.18em] text-[#141416] transition-colors hover:bg-sakura-deep hover:text-white uppercase"
+                      >
+                        <span>OPEN ON GITHUB</span>
+                        <ArrowUpRight className="h-4 w-4" />
+                      </a>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInspectedIndex(
+                            (inspectedIndex - 1 + projects.length) % projects.length,
+                          )
+                        }
+                        aria-label="Previous project"
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center border border-white/20 text-white/80 transition-colors hover:border-sakura hover:text-sakura"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setInspectedIndex((inspectedIndex + 1) % projects.length)
+                        }
+                        aria-label="Next project"
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center border border-white/20 text-white/80 transition-colors hover:border-sakura hover:text-sakura"
+                      >
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* 02 — Games: a tall field of frames, columns drifting at their own   */
-/* speed. Mixed landscape and portrait, name plate bottom-right.       */
+/* 02 — Games: 4-col velocity-skewed field, filter pills & lightbox    */
 /* ------------------------------------------------------------------ */
 
-/** Deterministic shuffle so the field is varied but stable across renders. */
 function shuffled<T>(arr: T[], seed = 1): T[] {
   const out = [...arr];
   let s = seed;
@@ -571,46 +1122,75 @@ function shuffled<T>(arr: T[], seed = 1): T[] {
   return out;
 }
 
+type GameFrame = {
+  id: string;
+  src: string;
+  orientation: string;
+  game: {
+    name: string;
+    note?: string;
+    color: string;
+  };
+};
+
 function GameColumn({
   frames,
   drift,
   progress,
+  skewY,
+  activeGame,
+  onInspect,
 }: {
-  frames: any[];
+  frames: GameFrame[];
   drift: number;
   progress: MotionValue<number>;
+  skewY: MotionValue<number>;
+  activeGame: string | null;
+  onInspect: (frame: GameFrame) => void;
   key?: number;
 }) {
   const y = useTransform(progress, [0, 1], [`${drift}%`, `${-drift}%`]);
 
   return (
-    <motion.div style={{ y }} className="flex flex-col gap-7">
-      {frames.map((f, i) => (
-        <div
-          key={`${f.game.name}-${i}`}
-          className={`group relative shrink-0 overflow-hidden ${
-            f.orientation === "portrait" ? "aspect-[9/16]" : "aspect-[16/9]"
-          }`}
-          style={{ backgroundColor: f.game.color }}
-        >
-          <img
-            src={f.src}
-            alt={`${f.game.name} screenshot ${i + 1}`}
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.05]"
-          />
-          {/* Name plate, bottom-right of every frame */}
-          <span className="absolute bottom-0 right-0 flex items-baseline gap-2 bg-white px-2.5 py-1 font-sans text-xs font-bold tracking-tight text-[#141416]">
-            {f.game.name}
-            {f.game.note && (
-              <span className="font-mono text-[10px] font-normal uppercase tracking-[0.15em] text-[#141416]/45">
-                {f.game.note}
-              </span>
-            )}
-          </span>
-        </div>
-      ))}
+    <motion.div style={{ y, skewY }} className="flex flex-col gap-5 md:gap-7">
+      {frames.map((f, i) => {
+        const isMatched = !activeGame || activeGame === f.game.name;
+        return (
+          <button
+            key={`${f.id}-${i}`}
+            type="button"
+            onClick={() => onInspect(f)}
+            className={`group relative shrink-0 cursor-pointer overflow-hidden text-left transition-all duration-500 ${
+              f.orientation === "portrait" ? "aspect-[9/16]" : "aspect-[16/9]"
+            } ${
+              isMatched
+                ? "opacity-100 ring-0 hover:ring-2 hover:ring-sakura-deep"
+                : "scale-[0.97] opacity-25 grayscale"
+            }`}
+            style={{ backgroundColor: f.game.color }}
+          >
+            <img
+              src={f.src}
+              alt={`${f.game.name} screenshot ${i + 1}`}
+              loading="lazy"
+              referrerPolicy="no-referrer"
+              className="h-full w-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+            />
+            <span className="absolute bottom-0 right-0 flex items-baseline gap-2 border-l border-t border-line bg-paper/95 px-2.5 py-1 font-sans text-xs font-bold tracking-tight text-ink backdrop-blur-xs">
+              <span
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ backgroundColor: f.game.color }}
+              />
+              {f.game.name}
+              {f.game.note && (
+                <span className="font-mono text-[10px] font-normal tracking-[0.15em] text-gray uppercase">
+                  {f.game.note}
+                </span>
+              )}
+            </span>
+          </button>
+        );
+      })}
     </motion.div>
   );
 }
@@ -618,11 +1198,14 @@ function GameColumn({
 function GamesStage() {
   const games = siteData.games;
   const trackRef = useRef<HTMLDivElement>(null);
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [inspected, setInspected] = useState<GameFrame | null>(null);
 
-  const frames = useMemo(
+  const frames = useMemo<GameFrame[]>(
     () =>
       games.flatMap((g) =>
-        g.screenshots.map((s: any) => ({
+        g.screenshots.map((s: any, idx: number) => ({
+          id: `${g.name}-${idx}`,
           src: s.src,
           orientation: s.orientation,
           game: g,
@@ -631,11 +1214,10 @@ function GamesStage() {
     [games],
   );
 
-  // Split into four columns; each drifts at a different rate.
   const columns = useMemo(() => {
-    const cols: any[][] = [[], [], [], []];
-    shuffled(frames, 7).forEach((f, i) => cols[i % 4].push(f));
-    return cols;
+    const cols: GameFrame[][] = [[], [], [], []];
+    shuffled<GameFrame>(frames, 7).forEach((f, i) => cols[i % 4].push(f));
+    return cols.map((col) => [...col, ...col]);
   }, [frames]);
 
   const { scrollYProgress } = useScroll({
@@ -648,49 +1230,149 @@ function GamesStage() {
     restDelta: 0.0005,
   });
 
+  const velocity = useVelocity(smooth);
+  const rawSkew = useTransform(velocity, [-0.6, 0, 0.6], [-3.5, 0, 3.5]);
+  const skewY = useSpring(rawSkew, { stiffness: 180, damping: 24 });
+
+  useEffect(() => {
+    if (!inspected) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setInspected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [inspected]);
+
+  const handleToggleGame = useCallback((name: string) => {
+    setActiveGame((prev) => (prev === name ? null : name));
+  }, []);
+
   return (
     <section id="games" className="relative bg-paper">
       <div ref={trackRef} className="relative h-[360vh]">
         <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden">
-          {/* Headline sits over the field */}
-          <div className="grid-20 absolute left-0 right-0 top-24 z-20">
-            <div className="grid-inner flex items-end justify-between gap-8">
+          {/* Headline + interactive game capsules */}
+          <div className="grid-20 pointer-events-none absolute left-0 right-0 top-20 z-20 md:top-24">
+            <div className="grid-inner flex flex-col items-start justify-between gap-4 md:flex-row md:items-end">
               <div>
-                <h2 className="display mt-3 text-[11vw] text-ink md:text-[6vw]">
+                <h2 className="display mt-2 text-[11vw] text-ink md:text-[6vw]">
                   What I <span className="text-sakura-deep">play</span>
                 </h2>
+              </div>
+
+              <div className="pointer-events-auto flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveGame(null)}
+                  className={`cursor-pointer border px-2.5 py-1 font-mono text-[10px] tracking-[0.16em] transition-colors uppercase ${
+                    activeGame === null
+                      ? "border-sakura-deep bg-sakura-deep text-white"
+                      : "border-line bg-paper/85 text-gray hover:border-ink hover:text-ink"
+                  }`}
+                >
+                  ALL ({frames.length})
+                </button>
+                {games.map((g) => {
+                  const selected = activeGame === g.name;
+                  return (
+                    <button
+                      key={g.name}
+                      type="button"
+                      onClick={() => handleToggleGame(g.name)}
+                      className={`cursor-pointer border px-2.5 py-1 font-mono text-[10px] tracking-[0.16em] transition-colors uppercase ${
+                        selected
+                          ? "border-sakura-deep bg-sakura-deep text-white"
+                          : "border-line bg-paper/85 text-ink/80 hover:border-sakura-deep"
+                      }`}
+                    >
+                      {g.name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
 
-          {/* Drifting field, full-bleed behind and around the headline */}
-          <div className="absolute inset-0">
-            <div className="grid h-full grid-cols-2 gap-7 md:grid-cols-3">
-              {columns.map((frames, i) => (
+          <div className="absolute inset-0 px-3 md:px-6">
+            <div className="grid h-full grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
+              {columns.map((colFrames, i) => (
                 <GameColumn
                   key={i}
-                  frames={frames}
-                  drift={i % 2 === 0 ? 14 : -14}
+                  frames={colFrames}
+                  drift={i % 2 === 0 ? 15 : -15}
                   progress={smooth}
+                  skewY={skewY}
+                  activeGame={activeGame}
+                  onInspect={setInspected}
                 />
               ))}
             </div>
           </div>
 
-          {/* Flat fields top and bottom, equal height, so the frame reads
-              symmetric and the headline stays legible over the images. */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[20%] bg-paper/90" />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[20%] bg-paper/90" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[24%] bg-gradient-to-b from-paper via-paper/85 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] bg-gradient-to-t from-paper via-paper/85 to-transparent" />
 
-          {/* Marquee band, the footer of the pinned stage */}
-          <div className="absolute inset-x-0 bottom-0 z-20 shrink-0 border-t border-line bg-paper py-4">
+          <div className="absolute inset-x-0 bottom-0 z-20 shrink-0 border-t border-line bg-paper/95 py-4 backdrop-blur-xs">
             <Ticker
               items={games.map((g) => g.name)}
+              activeItem={activeGame}
+              onSelectItem={handleToggleGame}
               className="display text-[1.75rem] text-ink md:text-[2.5rem]"
             />
           </div>
         </div>
       </div>
+
+      {/* Full-screen Lightbox Modal */}
+      <AnimatePresence>
+        {inspected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            onClick={() => setInspected(null)}
+            className="fixed inset-0 z-[90] flex items-center justify-center bg-[#141416]/90 p-4 backdrop-blur-md md:p-12"
+          >
+            <motion.div
+              initial={{ scale: 0.92, y: 16 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.94, y: 12 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative max-h-[86svh] w-full max-w-5xl overflow-hidden border border-white/15 bg-[#141416] shadow-2xl"
+            >
+              <img
+                src={inspected.src}
+                alt={inspected.game.name}
+                className="max-h-[76svh] w-full bg-[#0c0c0e] object-contain"
+              />
+              <div className="flex items-center justify-between gap-4 border-t border-white/10 px-5 py-3.5 text-white">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: inspected.game.color }}
+                  />
+                  <span className="display text-lg">{inspected.game.name}</span>
+                  {inspected.game.note && (
+                    <span className="font-mono text-xs tracking-[0.2em] text-white/55 uppercase">
+                      / {inspected.game.note}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setInspected(null)}
+                  className="flex cursor-pointer items-center gap-1.5 border border-white/20 px-3 py-1 font-mono text-[10px] tracking-[0.2em] text-white/80 transition-colors hover:border-sakura hover:text-sakura uppercase"
+                >
+                  <span>CLOSE [ESC]</span>
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
@@ -704,15 +1386,31 @@ function ProfileStage() {
   const about = profile.about;
 
   return (
-    <section id="profile" className="flex min-h-[100svh] flex-col justify-center bg-paper pb-20 pt-28">
+    <section
+      id="profile"
+      className="relative flex min-h-[100svh] flex-col justify-center bg-paper pb-20 pt-28"
+    >
       <div className="grid-20">
         <div className="grid-inner">
-          <h2 className="display mt-3 text-[13vw] text-ink md:text-[7vw]">
-            About <span className="text-sakura-deep">me</span>
-          </h2>
+          <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <h2 className="display mt-2 text-[13vw] text-ink md:text-[7vw]">
+              About <span className="text-sakura-deep">me</span>
+            </h2>
+            <span aria-hidden="true" className="paper-rule draw-in mt-5 block w-full max-w-md" />
+          </motion.div>
 
           <div className="mt-10 grid gap-10 md:grid-cols-[1.2fr_1fr] md:gap-16">
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.75, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+            >
               <div className="flex items-center gap-5">
                 <img
                   src={profile.avatar}
@@ -721,7 +1419,7 @@ function ProfileStage() {
                 />
                 <div>
                   <p className="font-mono text-[11px] tracking-[0.25em] text-gray">
-                    {profile.location.toUpperCase()}
+                    {profile.location.toUpperCase()} · {profile.handle}
                   </p>
                   <p className="mt-1 display text-xl text-ink">{profile.name}</p>
                 </div>
@@ -736,18 +1434,30 @@ function ProfileStage() {
                 {about.items.map((item, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-3 bg-mist px-4 py-3 text-sm leading-snug text-ink/75"
+                    className="group flex items-start gap-3 border border-transparent bg-mist px-4 py-3 text-sm leading-snug text-ink/80 transition-colors hover:border-line hover:bg-paper"
                   >
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 bg-sakura-deep" />
-                    {item}
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 bg-sakura-deep transition-transform group-hover:scale-125" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-col justify-center">
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.75, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col justify-center"
+            >
               {siteData.skills.map((group, gi) => (
-                <div key={group.name} className={`py-4 ${gi > 0 ? "border-t border-line" : ""}`}>
+                <div key={group.name} className="relative py-4">
+                  {gi > 0 && (
+                    <span
+                      aria-hidden="true"
+                      className="draw-in absolute inset-x-0 top-0 block h-px bg-line"
+                    />
+                  )}
                   <p className="font-mono text-[10px] tracking-[0.25em] text-gray">
                     / {group.name.toUpperCase()}
                   </p>
@@ -764,10 +1474,11 @@ function ProfileStage() {
                 </div>
               ))}
 
-              <div className="mt-4 bg-sakura px-5 py-4">
-                <p className="font-mono text-[10px] tracking-[0.25em] text-[#141416]/70">
-                  NOW
-                </p>
+              <div className="mt-4 bg-sakura px-5 py-4 text-[#141416]">
+                <div className="flex items-center gap-2 font-mono text-[10px] tracking-[0.25em] text-[#141416]/75">
+                  <span className="blink inline-block h-2 w-2 rounded-full bg-[#141416]" />
+                  <span>NOW</span>
+                </div>
                 <ul className="mt-3 space-y-1.5">
                   {siteData.now.map((n) => (
                     <li key={n} className="text-sm leading-snug text-[#141416]">
@@ -776,7 +1487,7 @@ function ProfileStage() {
                   ))}
                 </ul>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -789,24 +1500,73 @@ function ProfileStage() {
 /* ------------------------------------------------------------------ */
 
 function ContactStage() {
+  const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
+  const [spot, setSpot] = useState<{ x: number; y: number; active: boolean }>({
+    x: 0,
+    y: 0,
+    active: false,
+  });
+
+  const handleGridMouseMove = (e: ReactMouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setSpot({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      active: true,
+    });
+  };
+
   return (
-    <section id="contact" className="flex min-h-[100svh] flex-col justify-center bg-mist pb-20 pt-28">
+    <section
+      id="contact"
+      className="relative flex min-h-[100svh] flex-col justify-center bg-mist pb-20 pt-28"
+    >
       <div className="grid-20">
         <div className="grid-inner">
-          <h2 className="display mt-3 text-[13vw] text-ink md:text-[7vw]">
-            Get in <span className="text-sakura-deep">touch</span>
-          </h2>
+          <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
+            <h2 className="display mt-2 text-[13vw] text-ink md:text-[7vw]">
+              Get in <span className="text-sakura-deep">touch</span>
+            </h2>
 
-          <div className="mt-10 grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
+            <div className="flex items-center gap-4 border-l-2 border-sakura-deep pl-4 lg:border-l-0 lg:border-r-2 lg:pl-0 lg:pr-4 lg:text-right">
+              <p className="font-sans text-sm tracking-wide text-ink/85 md:text-base">
+                {siteData.profile.quote}
+              </p>
+              <span
+                aria-hidden="true"
+                className="vertical-jp hidden h-20 select-none text-xs tracking-[0.25em] text-sakura-deep/80 xl:block"
+              >
+                夜空に咲く花
+              </span>
+            </div>
+          </div>
+
+          <div
+            onMouseMove={handleGridMouseMove}
+            onMouseLeave={() => setSpot((s) => ({ ...s, active: false }))}
+            className="relative mt-10 grid grid-cols-2 gap-px overflow-hidden bg-line sm:grid-cols-4"
+          >
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-300"
+              style={{
+                opacity: spot.active ? 1 : 0,
+                background: `radial-gradient(380px circle at ${spot.x}px ${spot.y}px, var(--color-sakura), transparent 75%)`,
+              }}
+            />
+
             {siteData.socials.map((social) => {
               const Icon = iconMap[social.icon];
+              const isHovered = hoveredSocial === social.name;
               return (
                 <a
                   key={social.name}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group relative flex flex-col justify-between gap-6 bg-mist px-5 py-6 transition-colors hover:bg-paper"
+                  onMouseEnter={() => setHoveredSocial(social.name)}
+                  onMouseLeave={() => setHoveredSocial(null)}
+                  className="group relative z-10 flex flex-col justify-between gap-6 bg-mist/95 px-5 py-6 transition-colors duration-300 hover:bg-paper"
                 >
                   <span className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-sakura transition-transform duration-300 group-hover:scale-x-100" />
                   {Icon && (
@@ -814,8 +1574,8 @@ function ContactStage() {
                   )}
                   <div>
                     <p className="display text-base text-ink">{social.name}</p>
-                    <p className="mt-1 truncate font-mono text-[11px] text-gray">
-                      {social.handle}
+                    <p className="mt-1 truncate font-mono text-[11px] text-gray group-hover:text-sakura-deep">
+                      <ScrambleText text={social.handle} active={isHovered} />
                     </p>
                   </div>
                 </a>
@@ -827,12 +1587,16 @@ function ContactStage() {
             <p className="font-mono text-[11px] tracking-[0.2em] text-gray">
               © {new Date().getFullYear()} {siteData.profile.name}
             </p>
-            <p className="max-w-sm text-sm text-gray">{siteData.profile.quote}</p>
+            <a
+              href="#index"
+              className="font-mono text-[11px] tracking-[0.22em] text-ink transition-colors hover:text-sakura-deep uppercase"
+            >
+              ↑ BACK TO TOP
+            </a>
           </div>
         </div>
       </div>
 
-      {/* Marquee band, running the other way */}
       <div className="mt-12 border-y border-line py-3">
         <Ticker
           items={[siteData.profile.name, ...siteData.profile.titles]}
@@ -848,79 +1612,15 @@ function ContactStage() {
 /* Deck                                                                */
 /* ------------------------------------------------------------------ */
 
-function useDeckStages(length: number) {
-  const [active, setActive] = useState(0);
-  const lock = useRef(0);
-
-  const go = useCallback(
-    (next: number) => setActive(Math.max(0, Math.min(length - 1, next))),
-    [length],
-  );
-
-  const step = useCallback(
-    (delta: number) =>
-      setActive((p) => Math.max(0, Math.min(length - 1, p + delta))),
-    [length],
-  );
-
-  // Paging is deliberate: the nav and the arrow keys move the deck. Scrolling
-  // belongs to the stages themselves — the wall and the games field keep their
-  // own scroll containers, and a wheel gesture never turns a page.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t && /input|textarea/i.test(t.tagName)) return;
-      const forward = ["ArrowDown", "PageDown", " "].includes(e.key);
-      const back = ["ArrowUp", "PageUp"].includes(e.key);
-      if (!forward && !back) return;
-      e.preventDefault();
-      if (Date.now() < lock.current) return;
-      lock.current = Date.now() + 380;
-      step(forward ? 1 : -1);
-    };
-
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [step]);
-
-  return { active, go };
-}
-
-/* Panels are ordinary sections stacked in the document, so the page scrolls
-   natively and every panel responds to the wheel — no paging, no hijacking.
-   Content fades in as it enters view. */
-
-function Panels() {
-  const panels: { label: string; node: ReactNode; dark: boolean }[] = [
-    { label: "Index", node: <Hero />, dark: true },
-    { label: "Projects", node: <ProjectsStage />, dark: false },
-    { label: "Games", node: <GamesStage />, dark: false },
-    { label: "Profile", node: <ProfileStage />, dark: false },
-    { label: "Contact", node: <ContactStage />, dark: false },
-  ];
-
-  return (
-    <>
-      {panels.map((p) => (
-        <section key={p.label} id={p.label.toLowerCase()} className="relative">
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.08 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {p.node}
-          </motion.div>
-        </section>
-      ))}
-    </>
-  );
-}
-
 export default function Deck() {
   const { dark, toggle } = useTheme();
+  const [heroReady, setHeroReady] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Document scroll drives the top hairline now that the page scrolls for real.
+  const handlePreloaderReady = useCallback(() => {
+    setHeroReady(true);
+  }, []);
+
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, {
     stiffness: 120,
@@ -928,58 +1628,130 @@ export default function Deck() {
     restDelta: 0.001,
   });
 
-  const stages = ["Index", "Projects", "Games", "Profile", "Contact"];
-
-  // Dark hero underneath ⇒ white chrome; light sections ⇒ ink chrome.
   const overHero = useOverHero();
+  const activeStage = useActiveStage();
   const fg = overHero ? "text-white" : "text-ink";
-  const dim = overHero ? "text-white/60" : "text-gray";
+  const dim = overHero ? "text-white/65" : "text-gray";
 
   return (
     <div className="relative w-full bg-paper">
-      <Preloader />
+      <Preloader onReady={handlePreloaderReady} />
 
-      {/* Reading progress, pinned to the top edge */}
       <motion.div
         aria-hidden="true"
         style={{ scaleX: progress }}
         className="fixed inset-x-0 top-0 z-50 h-[3px] origin-left bg-sakura-deep"
       />
 
-      <Panels />
+      <main>
+        <Hero ready={heroReady} />
+        <ProjectsStage />
+        <GamesStage />
+        <ProfileStage />
+        <ContactStage />
+      </main>
 
       <header className="fixed inset-x-0 top-0 z-40">
-        <div className="grid-20 py-6 md:py-7">
+        <div className="grid-20 py-5 md:py-7">
           <div className="grid-inner flex items-center justify-between">
-            <a href="#index" className={`display text-sm transition-colors duration-300 ${fg}`}>
+            <a
+              href="#index"
+              className={`display text-sm transition-colors duration-300 ${fg}`}
+            >
               dingyi222666
             </a>
 
-            <div className="flex items-center gap-7">
+            <div className="flex items-center gap-5 md:gap-7">
               <nav className="hidden items-center gap-7 md:flex">
-                {stages.map((label) => (
-                  <a
-                    key={label}
-                    href={`#${label.toLowerCase()}`}
-                    className={`group relative font-sans text-[11px] font-medium tracking-[0.14em] transition-colors duration-300 hover:opacity-100 ${dim}`}
-                  >
-                    {label}
-                    <span className="absolute -bottom-1.5 left-0 block h-px w-full origin-left scale-x-0 bg-sakura-deep transition-transform duration-300 group-hover:scale-x-100" />
-                  </a>
-                ))}
+                {STAGES.map((stage) => {
+                  const isActive = activeStage === stage.id;
+                  return (
+                    <a
+                      key={stage.id}
+                      href={`#${stage.id}`}
+                      className={`group relative flex items-baseline gap-1.5 font-sans text-[11px] font-medium tracking-[0.14em] transition-colors duration-300 ${
+                        isActive ? fg : dim
+                      } hover:opacity-100`}
+                    >
+                      <span className="font-mono text-[9px] text-sakura-deep">
+                        {stage.num}
+                      </span>
+                      <span>{stage.label}</span>
+                      {isActive ? (
+                        <motion.span
+                          layoutId="header-active-bar"
+                          className="absolute -bottom-1.5 left-0 block h-[1.5px] w-full bg-sakura-deep"
+                        />
+                      ) : (
+                        <span className="absolute -bottom-1.5 left-0 block h-px w-full origin-left scale-x-0 bg-sakura-deep transition-transform duration-300 group-hover:scale-x-100" />
+                      )}
+                    </a>
+                  );
+                })}
               </nav>
 
               <button
+                type="button"
                 onClick={toggle}
                 aria-label="Toggle colour theme"
-                className={`flex h-7 w-7 items-center justify-center transition-colors duration-300 hover:text-sakura-deep ${fg}`}
+                className={`flex h-7 w-7 cursor-pointer items-center justify-center transition-colors duration-300 hover:text-sakura-deep ${fg}`}
               >
                 {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen((v) => !v)}
+                aria-label="Toggle navigation menu"
+                className={`flex h-7 w-7 cursor-pointer items-center justify-center transition-colors duration-300 hover:text-sakura-deep md:hidden ${fg}`}
+              >
+                {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
               </button>
             </div>
           </div>
         </div>
       </header>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: "-100%" }}
+            animate={{ opacity: 1, y: "0%" }}
+            exit={{ opacity: 0, y: "-100%" }}
+            transition={{ duration: 0.45, ease: [0.76, 0, 0.24, 1] }}
+            className="fixed inset-0 z-30 flex flex-col justify-between bg-paper px-6 pb-10 pt-24 md:hidden"
+          >
+            <nav className="flex flex-col gap-5">
+              {STAGES.map((stage) => {
+                const isActive = activeStage === stage.id;
+                return (
+                  <a
+                    key={stage.id}
+                    href={`#${stage.id}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-baseline justify-between border-b border-line pb-3"
+                  >
+                    <span
+                      className={`display text-4xl ${
+                        isActive ? "text-sakura-deep" : "text-ink"
+                      }`}
+                    >
+                      {stage.label}
+                    </span>
+                    <span className="font-mono text-xs tracking-[0.2em] text-gray">
+                      / {stage.num}
+                    </span>
+                  </a>
+                );
+              })}
+            </nav>
+
+            <div className="font-mono text-[11px] tracking-[0.18em] text-gray">
+              <p>{siteData.profile.quote}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

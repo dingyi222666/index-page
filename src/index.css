@@ -8,10 +8,11 @@
 @theme {
   /* Heavy grotesk for display type, with CJK fallbacks so Japanese and
      Chinese never fall back to a serif. */
-  --font-display: "Inter", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans",
+  --font-display: "Inter", "Zen Kaku Gothic New", "Helvetica Neue", Helvetica, Arial, "Hiragino Sans",
     "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-sans: "Inter", "Hiragino Sans", "Noto Sans JP", "PingFang SC",
+  --font-sans: "Inter", "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", "PingFang SC",
     "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+  --font-jp: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", "PingFang SC", sans-serif;
   --font-mono: "Maple Mono", "Maple Mono NF", ui-monospace, SFMono-Regular,
     Menlo, Monaco, Consolas, monospace;
 
@@ -49,6 +50,7 @@
      section ever fails to paint. */
   html {
     background-color: var(--color-paper);
+    scroll-behavior: smooth;
   }
 
   body {
@@ -276,7 +278,16 @@
   animation: word-up 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.vertical-jp {
+  font-family: var(--font-jp);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
   *,
   *::before,
   *::after {
